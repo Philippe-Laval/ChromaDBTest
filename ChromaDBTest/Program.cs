@@ -13,7 +13,7 @@ using Microsoft.VisualBasic;
 //await TryAGIChromaTest.TestCreationOfDatabase();
 //await TryAGIChromaTest.TestDeleteCollectionAsync();
 
-
+await TryAGIChromaTest.TestCollectionSearchAsync();
 
 await TryAGIChromaTest.TestCollectionQueryAsync();
 

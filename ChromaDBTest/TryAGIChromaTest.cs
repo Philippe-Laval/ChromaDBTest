@@ -65,7 +65,7 @@ namespace ChromaDBTest
                     Console.WriteLine($"Database: {database.Name}");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error listing databases: {ex.Message}");
             }
@@ -223,7 +223,7 @@ namespace ChromaDBTest
 
                 Console.WriteLine($"Delete collection response: {deleteCollectionResponse}");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error deleting collection: {ex.Message}");
             }
@@ -379,7 +379,7 @@ namespace ChromaDBTest
                   apiKey: "test",
                   baseUri: new Uri($"http://127.0.0.1:8000"));
 
-            // Get our colelction
+            // Get our collection
             Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
                 database: "default_database",
                 request: new CreateCollectionPayload
@@ -397,33 +397,7 @@ namespace ChromaDBTest
             //    WhereClause = null
             //};
 
-            //SearchPayloadFilter searchPayloadFilter = new SearchPayloadFilter
-            //{
-            //    QueryIds = null,
-            //    WhereClause = null
-            //};
 
-            //SearchPayload searchPayload = new SearchPayload
-            //{
-            //    Filter = searchPayloadFilter,
-            //    GroupBy = null,
-            //    Limit = new SearchPayloadLimit { Limit = 2, Offset = 0 },
-            //    Rank = null,
-            //    Select = new SearchPayloadSelect { Keys = new List<string> { "metadatas", "documents", "distances" } }
-            //};
-
-            //SearchRequestPayload searchRequestPayload = new SearchRequestPayload
-            //{
-            //    Searches = new List<SearchPayload>
-            //    {
-            //        searchPayload
-            //    }
-            //};
-
-            //SearchResponse searchResponse = await client.Record.CollectionSearchAsync(tenant: "default_tenant",
-            //    database: "default_database",
-            //    collectionId: collection2.Id.ToString(),
-            //    request: searchRequestPayload);
 
             // Fake embeddings for testing (384 dimensions)
             global::System.Collections.Generic.List<float> embedding1 = new global::System.Collections.Generic.List<float>();
@@ -446,7 +420,7 @@ namespace ChromaDBTest
                     embedding2
                 },
                 NResults = 10,
-                Include = new List<Include> { 
+                Include = new List<Include> {
                     Include.Documents, Include.Distances, Include.Embeddings, Include.Metadatas, Include.Uris
                 }
             };
@@ -497,6 +471,54 @@ namespace ChromaDBTest
 
         }
 
+
+        public static async Task TestCollectionSearchAsync()
+        {
+            var client = new ChromaClient(
+                  apiKey: "test",
+                  baseUri: new Uri($"http://127.0.0.1:8000"));
+
+            // Get our collection
+            Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
+                database: "default_database",
+                request: new CreateCollectionPayload
+                {
+                    Name = "my_collection2",
+                    GetOrCreate = true,
+                    //Metadata = null,
+                    //Configuration = null
+                });
+
+            SearchPayloadFilter searchPayloadFilter = new SearchPayloadFilter
+            {
+                QueryIds = new List<string> { "id1", "id2" },
+                WhereClause = null
+            };
+
+            SearchPayload searchPayload = new SearchPayload
+            {
+                Filter = searchPayloadFilter,
+                //GroupBy = null,
+                Limit = new SearchPayloadLimit { Limit = 2, Offset = 0 },
+                //Rank = null,
+                //Select = new SearchPayloadSelect { Keys = new List<string> { "#id", "#document", "#embedding", "#metadata", "#score" } }
+                Select = new SearchPayloadSelect { Keys = new List<string> { "#id", "#document" } }
+            };
+
+            SearchRequestPayload searchRequestPayload = new SearchRequestPayload
+            {
+                Searches = new List<SearchPayload>
+                {
+                    searchPayload
+                }
+                //ReadLevel = ReadLevel.IndexOnly
+            };
+
+            SearchResponse searchResponse = await client.Record.CollectionSearchAsync(tenant: "default_tenant",
+                database: "default_database",
+                collectionId: collection2.Id.ToString(),
+                request: searchRequestPayload);
+        }
 
     }
 }
