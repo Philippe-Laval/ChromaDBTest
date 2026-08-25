@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../Chroma/src/libs/Chroma/Chroma.csproj" />
+  <Project Path="ChromaDBTest/ChromaDBTest.csproj" />
+</Solution>
