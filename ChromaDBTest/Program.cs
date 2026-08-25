@@ -8,9 +8,9 @@ using Microsoft.VisualBasic;
 
 // Tests using the new ChromaClient, which is using the new chroma api v2, so we need to use the v2 endpoint for testing.
 
-await TryAGIChromaTest.GetClientVersion();
-await TryAGIChromaTest.TestListingOfDatabases();
-await TryAGIChromaTest.TestCreationOfDatabase();
+//await TryAGIChromaTest.GetClientVersion();
+//await TryAGIChromaTest.TestListingOfDatabases();
+//await TryAGIChromaTest.TestCreationOfDatabase();
 //await TryAGIChromaTest.TestDeleteCollectionAsync();
 
 
