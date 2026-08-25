@@ -12,9 +12,9 @@ namespace ChromaDBTest
     /// Uses the ChromaClient to interact with the ChromaDB API, demonstrating various operations such as creating collections, adding records, querying, and retrieving system information.
     /// https://github.com/tryAGI/Chroma
     /// </summary>
-    public class TryAGIChromaTest
+    public static class TryAGIChromaTest
     {
-        public async Task GetClientVersion()
+        public static async Task GetClientVersion()
         {
             var client = new ChromaClient(
                   apiKey: "test",
@@ -27,7 +27,7 @@ namespace ChromaDBTest
             Console.WriteLine($"Heartbeat: {heartbeat.Nanosecond_heartbeat}");
         }
 
-        public async Task Run2()
+        public static async Task TestCreationOfDatabase()
         {
             var client = new ChromaClient(
                   apiKey: "test",
@@ -35,18 +35,43 @@ namespace ChromaDBTest
 
             //var response = await client.Database.CreateDatabaseAsync("default_tenant", "database1");
 
-            //var createDatabaseResponse = await client.Database.CreateDatabaseAsync("default_tenant", "database2");
-            //var deleteDatabaseResponse = await client.Database.DeleteDatabaseAsync("default_tenant", "database2");
+            try
+            {
+                // Create a new database named "database2" for the tenant "default_tenant"
+                var createDatabaseResponse = await client.Database.CreateDatabaseAsync("default_tenant", "database2");
 
-            // Bug for now
-            //var databases = await client.Database.ListDatabasesAsync("default_tenant");
-            //foreach (var database in databases)
-            //{
-            //    Console.WriteLine($"Database: {database.Name}");
-            //}
+                // Add a break point and look with a sqlite browser to see the database2 created in the ChromaDB data folder
+
+                // Delete the database after creation for cleanup
+                var deleteDatabaseResponse = await client.Database.DeleteDatabaseAsync("default_tenant", "database2");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating or deleting database: {ex.Message}");
+            }
         }
 
-        public async Task Run3()
+        public static async Task TestListingOfDatabases()
+        {
+            var client = new ChromaClient(
+                  apiKey: "test",
+                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            try
+            {
+                // Bug for now
+                var databases = await client.Database.ListDatabasesAsync("default_tenant");
+                foreach (var database in databases)
+                {
+                    Console.WriteLine($"Database: {database.Name}");
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error listing databases: {ex.Message}");
+            }
+        }
+
+        public static async Task TestGetCollectionCountOfDatabase()
         {
             var client = new ChromaClient(
                   apiKey: "test",
@@ -54,17 +79,38 @@ namespace ChromaDBTest
 
             var count = await client.Collection.CountCollectionsAsync(tenant: "default_tenant", database: "default_database");
             Console.WriteLine($"Collection count: {count}");
+        }
 
-            // Bug for now : throw an exception when the collection does not exist
-            //Collection? myCollection = await client.Collection.GetCollectionAsync(tenant: "default_tenant", database: "default_database", collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5");
-            //if (myCollection != null)
-            //{
-            //    Console.WriteLine($"Collection: {myCollection.Name} {myCollection.Dimension} {myCollection.Database} {myCollection.Tenant}");
-            //}
-            //else
-            //{
-            //    Console.WriteLine("Collection not found.");
-            //}
+        public static async Task TestGetCollectionAsync()
+        {
+            var client = new ChromaClient(
+                  apiKey: "test",
+                  baseUri: new Uri($"http://127.0.0.1:8000"));
+
+            try
+            {
+                // Bug for now : throw an exception when the collection does not exist
+                Collection? myCollection = await client.Collection.GetCollectionAsync(tenant: "default_tenant", database: "default_database", collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5");
+                if (myCollection != null)
+                {
+                    Console.WriteLine($"Collection: {myCollection.Name} {myCollection.Dimension} {myCollection.Database} {myCollection.Tenant}");
+                }
+                else
+                {
+                    Console.WriteLine("Collection not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error listing databases: {ex.Message}");
+            }
+        }
+
+        public static async Task TestListCollectionsAsync()
+        {
+            var client = new ChromaClient(
+                  apiKey: "test",
+                  baseUri: new Uri($"http://127.0.0.1:8000"));
 
             var collections = await client.Collection.ListCollectionsAsync(
                 tenant: "default_tenant",
@@ -74,10 +120,29 @@ namespace ChromaDBTest
             {
                 Console.WriteLine($"Collection: {collection.Id} {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
             }
+        }
 
+        /// <summary>
+        /// Count the entries in the collection of a database for a tenant.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task TestCollectionCountAsync()
+        {
+            var client = new ChromaClient(
+                  apiKey: "test",
+                  baseUri: new Uri($"http://127.0.0.1:8000"));
 
-            var recordCount = await client.Record.CollectionCountAsync(tenant: "default_tenant", database: "default_database", collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5");
+            var recordCount = await client.Record.CollectionCountAsync(tenant: "default_tenant",
+                database: "default_database",
+                collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5");
             Console.WriteLine($"Record count: {recordCount}");
+        }
+
+        public static async Task TestCreateCollectionAsync()
+        {
+            var client = new ChromaClient(
+                  apiKey: "test",
+                  baseUri: new Uri($"http://127.0.0.1:8000"));
 
             // Missing column "dimension" 384 - actually NULL
             Collection collection3 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
@@ -91,6 +156,18 @@ namespace ChromaDBTest
                 });
 
             // collection3.Dimension = 384;
+        }
+
+        /// <summary>
+        /// GetOrCreate = true will ensure the collection is created if needed, or return the existing collection if it already exists. 
+        /// This is useful for avoiding errors when trying to create a collection that may already exist.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task TestCreateCollectionAsyncWithExistingCollection()
+        {
+            var client = new ChromaClient(
+                  apiKey: "test",
+                  baseUri: new Uri($"http://127.0.0.1:8000"));
 
             Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
                 database: "default_database",
@@ -102,59 +179,80 @@ namespace ChromaDBTest
                     //Configuration = null
                 });
 
-            /*
-            await client.Collection.UpdateCollectionAsync(tenant: "default_tenant",
-                database: "default_database",
-                collectionId: collection3.Id.ToString(),
-                request: new UpdateCollectionPayload
-                {
-                    NewName = null,
-                    NewConfiguration = null,
-                    NewMetadata = null
-                });
-            */
         }
 
-        public async Task Run4()
+        /*
+         await client.Collection.UpdateCollectionAsync(tenant: "default_tenant",
+               database: "default_database",
+               collectionId: collection3.Id.ToString(),
+               request: new UpdateCollectionPayload
+               {
+                   NewName = null,
+                   NewConfiguration = null,
+                   NewMetadata = null
+               });
+         */
+
+        /// <summary>
+        /// Delete a collection
+        /// </summary>
+        /// <returns></returns>
+        public static async Task TestDeleteCollectionAsync()
         {
             var client = new ChromaClient(
                   apiKey: "test",
                   baseUri: new Uri($"http://127.0.0.1:8000"));
-            /*
-             * Delete a collection
-             * 
-            var deleteCollectionResponse = await client.Collection.DeleteCollectionAsync(tenant: "default_tenant",
+
+            try
+            {
+                // Get the collection to delete
+                Collection collection3 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
                 database: "default_database",
-                collectionId: collection3.Id.ToString());
-            Console.WriteLine($"Delete collection response: {deleteCollectionResponse}");
-            */
+                request: new CreateCollectionPayload
+                {
+                    Name = "my_collection3",
+                    GetOrCreate = true,
+                    //Metadata = null,
+                    //Configuration = null
+                });
+
+                // Delete the collection
+                var deleteCollectionResponse = await client.Collection.DeleteCollectionAsync(tenant: "default_tenant",
+                    database: "default_database",
+                    collectionId: collection3.Id.ToString());
+
+                Console.WriteLine($"Delete collection response: {deleteCollectionResponse}");
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine($"Error deleting collection: {ex.Message}");
+            }
+
         }
 
-        public async Task Run5()
+        public static async Task TestCollectionAddAsync()
         {
             var client = new ChromaClient(
                   apiKey: "test",
                   baseUri: new Uri($"http://127.0.0.1:8000"));
 
             // Fake embeddings for testing (384 dimensions)
-            global::System.Collections.Generic.List<float> e1 = new global::System.Collections.Generic.List<float>();
+            List<float> embedding1 = new List<float>();
             for (int i = 0; i < 384; i++)
             {
-                e1.Add(0.1f);
+                embedding1.Add(0.1f);
             }
 
-            global::System.Collections.Generic.List<float> e2 = new global::System.Collections.Generic.List<float>();
+            List<float> embedding2 = new List<float>();
             for (int i = 0; i < 384; i++)
             {
-                e2.Add(0.2f);
+                embedding2.Add(0.2f);
             }
 
-            global::System.Collections.Generic.IList<global::System.Collections.Generic.IList<float>> embeddings = new global::System.Collections.Generic.List<global::System.Collections.Generic.IList<float>>
+            IList<IList<float>> embeddings = new List<IList<float>>
             {
-                e1,
-                e2
+                embedding1, embedding2
             };
-
 
             var embeddingsPayload = new EmbeddingsPayload
             {
@@ -171,6 +269,7 @@ namespace ChromaDBTest
                 Documents = new List<string> { "This is a document about lemons", "This is a document about mangos" }
             };
 
+            // Get the collection where we want to add records
             Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
                 database: "default_database",
                 request: new CreateCollectionPayload
@@ -189,16 +288,15 @@ namespace ChromaDBTest
         }
 
 
-        public async Task Run6()
+        public static async Task TestUpdateCollectionAsync()
         {
             var client = new ChromaClient(
                   apiKey: "test",
                   baseUri: new Uri($"http://127.0.0.1:8000"));
 
 
-            /* 
-             * Changes the collection name
-             * 
+            // Changes the collection name
+
             await client.Collection.UpdateCollectionAsync(tenant: "default_tenant",
                 database: "default_database",
                 collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5",
@@ -208,10 +306,10 @@ namespace ChromaDBTest
                     NewConfiguration = null,
                     NewMetadata = null
                 });
-            */
+
         }
 
-        public async Task Run7()
+        public static async Task Run7()
         {
             var client = new ChromaClient(
                   apiKey: "test",
@@ -270,14 +368,18 @@ namespace ChromaDBTest
             //});
 
         }
-
-        public async Task Run8()
+        /// <summary>
+        /// Given a list of embeddings, finds the documents the nearest to the embeddings in the collection. 
+        /// The result is a list of documents, one for each embedding in the query.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task TestCollectionQueryAsync()
         {
             var client = new ChromaClient(
                   apiKey: "test",
                   baseUri: new Uri($"http://127.0.0.1:8000"));
 
-
+            // Get our colelction
             Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
                 database: "default_database",
                 request: new CreateCollectionPayload
@@ -324,25 +426,29 @@ namespace ChromaDBTest
             //    request: searchRequestPayload);
 
             // Fake embeddings for testing (384 dimensions)
-            global::System.Collections.Generic.List<float> e1 = new global::System.Collections.Generic.List<float>();
+            global::System.Collections.Generic.List<float> embedding1 = new global::System.Collections.Generic.List<float>();
             for (int i = 0; i < 384; i++)
             {
-                e1.Add(0.1f);
+                embedding1.Add(0.1f);
             }
 
-            global::System.Collections.Generic.List<float> e2 = new global::System.Collections.Generic.List<float>();
+            global::System.Collections.Generic.List<float> embedding2 = new global::System.Collections.Generic.List<float>();
             for (int i = 0; i < 384; i++)
             {
-                e2.Add(0.2f);
+                embedding2.Add(0.2f);
             }
 
             QueryRequestPayloadVariant2 queryRequestPayloadVariant2 = new QueryRequestPayloadVariant2
             {
                 QueryEmbeddings = new List<IList<float>>
                 {
-                    e1,
-                    e2
+                    embedding1,
+                    embedding2
                 },
+                NResults = 10,
+                Include = new List<Include> { 
+                    Include.Documents, Include.Distances, Include.Embeddings, Include.Metadatas, Include.Uris
+                }
             };
 
             QueryRequestPayload queryRequestPayload = new QueryRequestPayload
@@ -362,12 +468,31 @@ namespace ChromaDBTest
 
             if (queryResponse != null)
             {
+                if (queryResponse.Ids != null && queryResponse.Ids.Count > 0)
                 {
-                    if (queryResponse.Documents != null && queryResponse.Documents.Count > 0)
-                    {
-                        IList<string>? documents = queryResponse.Documents[0];
-                    }
+                    IList<string>? ids = queryResponse.Ids[0];
                 }
+
+                if (queryResponse.Documents != null && queryResponse.Documents.Count > 0)
+                {
+                    IList<string>? documents = queryResponse.Documents[0];
+                }
+
+                if (queryResponse.Distances != null && queryResponse.Distances.Count > 0)
+                {
+                    IList<float>? distances = queryResponse.Distances[0];
+                }
+
+                if (queryResponse.Metadatas != null && queryResponse.Metadatas.Count > 0)
+                {
+                    IList<OneOf<object, HashMap>>? metadatas = queryResponse.Metadatas[0];
+                }
+
+                if (queryResponse.Uris != null && queryResponse.Uris.Count > 0)
+                {
+                    IList<string>? uris = queryResponse.Uris[0];
+                }
+
             }
 
         }

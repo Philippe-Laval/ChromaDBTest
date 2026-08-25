@@ -5,9 +5,9 @@ using System.Text;
 
 namespace ChromaDBTest
 {
-    public class ChromaDBClientTest
+    public static class ChromaDBClientTest
     {
-        public async Task Run1()
+        public static async Task Run1()
         {
             // create a ChromaClient with configuration options
             var configOptions = new ChromaConfigurationOptions(uri: "http://localhost:8000/api/v1/");
@@ -64,7 +64,7 @@ namespace ChromaDBTest
 
         }
 
-        public async Task Run2()
+        public static async Task Run2()
         {
             var configOptions = new ChromaConfigurationOptions(uri: "http://localhost:8000/api/v1/");
             using var httpClient = new HttpClient();
