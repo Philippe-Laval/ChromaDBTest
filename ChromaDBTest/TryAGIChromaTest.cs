@@ -5,11 +5,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+
 namespace ChromaDBTest
 {
-    public class Test3
+    /// <summary>
+    /// Uses the ChromaClient to interact with the ChromaDB API, demonstrating various operations such as creating collections, adding records, querying, and retrieving system information.
+    /// https://github.com/tryAGI/Chroma
+    /// </summary>
+    public class TryAGIChromaTest
     {
-        public async Task Run1()
+        public async Task GetClientVersion()
         {
             var client = new ChromaClient(
                   apiKey: "test",
