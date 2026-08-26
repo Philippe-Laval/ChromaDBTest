@@ -42,7 +42,9 @@ await TryAGIChromaTest.TestCollectionAddAsync("my_collection2");
 await TryAGIChromaTest.TestCollectionAddAsync("my_collection3");
 
 
-await TryAGIChromaTest.TestCollectionUpsertAsync();
+await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection1");
+await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection2");
+await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection3");
 
 
 await TryAGIChromaTest.TestListingOfDatabases();
