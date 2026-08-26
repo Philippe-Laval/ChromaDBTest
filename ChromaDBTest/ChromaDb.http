@@ -1,0 +1,79 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+
+@ChromaDB_HostAddress = http://localhost:8000
+@tenant = default_tenant
+@database = default_database
+@collection = my_collection2
+@collection_id = c359bdb6-c29d-4fe3-87f1-b13ec62061e5
+
+GET {{ChromaDB_HostAddress}}/docs
+Accept: application/json
+
+###
+
+# request to get the OpenAPI specification for the ChromaDB API
+GET {{ChromaDB_HostAddress}}/openapi.json
+Accept: application/json
+
+###
+
+GET {{ChromaDB_HostAddress}}/api/v2/auth/identity
+Accept: application/json
+
+###
+
+GET {{ChromaDB_HostAddress}}/api/v2/healthcheck
+Accept: application/json
+
+###
+
+GET {{ChromaDB_HostAddress}}/api/v2/heartbeat
+Accept: application/json
+
+###
+
+GET {{ChromaDB_HostAddress}}/api/v2/pre-flight-checks
+Accept: application/json
+
+###
+
+# ne marche pas encore, need to check the API spec for the correct endpoint
+GET {{ChromaDB_HostAddress}}/api/v2/tenants/default_tenant
+Accept: application/json
+
+###
+
+GET {{ChromaDB_HostAddress}}/api/v2/tenants/{{tenant}}/databases
+Accept: application/json
+
+###
+
+GET {{ChromaDB_HostAddress}}/api/v2/tenants/{{tenant}}/databases/{{database}}
+Accept: application/json
+
+###
+
+# get all collections in the database
+GET {{ChromaDB_HostAddress}}/api/v2/tenants/{{tenant}}/databases/{{database}}/collections
+Accept: application/json
+
+###
+
+#not working yet, need to check the API spec for the correct endpoint
+GET {{ChromaDB_HostAddress}}/api/v2/tenants/{{tenant}}/databases/{{database}}/collectionsby-id/{{collection_id}}
+Accept: application/json
+
+###
+
+# get collection by name
+GET {{ChromaDB_HostAddress}}/api/v2/tenants/{{tenant}}/databases/{{database}}/collections/{{collection}}
+
+###
+
+# KO
+# get the count of record in the collection
+GET {{ChromaDB_HostAddress}}/api/v2/tenants/{{tenant}}/databases/{{database}}/collections/{{collection_id}}/count
+
+###
+
+

@@ -16,22 +16,27 @@ namespace ChromaDBTest
     {
         public static async Task GetClientVersion()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             string version = await client.System.VersionAsync();
             Console.WriteLine($"Chroma version: {version}");
 
             HeartbeatResponse heartbeat = await client.System.HeartbeatAsync();
             Console.WriteLine($"Heartbeat: {heartbeat.Nanosecond_heartbeat}");
+
+            string? healthcheck = await client.System.HealthcheckAsync();
+            Console.WriteLine($"Healthcheck: {healthcheck ?? "Unknown"}");
+
+            ChecklistResponse checklistResponse = await client.System.PreFlightChecksAsync();
+            Console.WriteLine($"MaxBatchSize: {checklistResponse.MaxBatchSize}");
+            Console.WriteLine($"SupportsBase64Encoding: {checklistResponse.SupportsBase64Encoding}");
+            Console.WriteLine($"AdditionalProperties: {checklistResponse.AdditionalProperties}");
+
         }
 
         public static async Task TestCreationOfDatabase()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             //var response = await client.Database.CreateDatabaseAsync("default_tenant", "database1");
 
@@ -53,9 +58,8 @@ namespace ChromaDBTest
 
         public static async Task TestListingOfDatabases()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
+
             try
             {
                 // Bug for now
@@ -83,9 +87,7 @@ namespace ChromaDBTest
 
         public static async Task TestGetCollectionAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             try
             {
@@ -108,9 +110,7 @@ namespace ChromaDBTest
 
         public static async Task TestListCollectionsAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             var collections = await client.Collection.ListCollectionsAsync(
                 tenant: "default_tenant",
@@ -128,9 +128,7 @@ namespace ChromaDBTest
         /// <returns></returns>
         public static async Task TestCollectionCountAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             var recordCount = await client.Record.CollectionCountAsync(tenant: "default_tenant",
                 database: "default_database",
@@ -140,9 +138,7 @@ namespace ChromaDBTest
 
         public static async Task TestCreateCollectionAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             // Missing column "dimension" 384 - actually NULL
             Collection collection3 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
@@ -163,22 +159,21 @@ namespace ChromaDBTest
         /// This is useful for avoiding errors when trying to create a collection that may already exist.
         /// </summary>
         /// <returns></returns>
-        public static async Task TestCreateCollectionAsyncWithExistingCollection()
+        public static async Task <Collection> TestCreateCollectionAsyncWithExistingCollection(string collectionName = "my_collection2")
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
-            Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
+            Collection collection = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
                 database: "default_database",
                 request: new CreateCollectionPayload
                 {
-                    Name = "my_collection2",
+                    Name = collectionName,
                     GetOrCreate = true,
                     //Metadata = null,
                     //Configuration = null
                 });
 
+            return collection;
         }
 
         /*
@@ -199,9 +194,7 @@ namespace ChromaDBTest
         /// <returns></returns>
         public static async Task TestDeleteCollectionAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             try
             {
@@ -232,31 +225,18 @@ namespace ChromaDBTest
 
         public static async Task TestCollectionAddAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
-            // Fake embeddings for testing (384 dimensions)
-            List<float> embedding1 = new List<float>();
-            for (int i = 0; i < 384; i++)
+            // Fake embeddingsPayloadVariant1 for testing (384 dimensions)
+            IList<IList<float>> embeddingsPayloadVariant1 = new List<IList<float>>
             {
-                embedding1.Add(0.1f);
-            }
-
-            List<float> embedding2 = new List<float>();
-            for (int i = 0; i < 384; i++)
-            {
-                embedding2.Add(0.2f);
-            }
-
-            IList<IList<float>> embeddings = new List<IList<float>>
-            {
-                embedding1, embedding2
+                GetEmbeddingForDoc3(),
+                GetEmbeddingForDoc4()
             };
 
             var embeddingsPayload = new EmbeddingsPayload
             {
-                EmbeddingsPayloadVariant1 = embeddings,
+                EmbeddingsPayloadVariant1 = embeddingsPayloadVariant1,
                 EmbeddingsPayloadVariant2 = null
             };
 
@@ -290,9 +270,7 @@ namespace ChromaDBTest
 
         public static async Task TestUpdateCollectionAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
 
             // Changes the collection name
@@ -309,41 +287,75 @@ namespace ChromaDBTest
 
         }
 
-        public static async Task Run7()
+        public static async Task<int> TestCountCollectionsAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
-            var countCollection = await client.Collection.CountCollectionsAsync(tenant: "default_tenant", database: "default_database");
-            Console.WriteLine($"Collection count: {countCollection}");
+            int countCollection = await client.Collection.CountCollectionsAsync(tenant: "default_tenant", database: "default_database");
 
-            // Dos not work : can not found the collection
-            var myCollection = await client.Collection.GetCollectionAsync(tenant: "default_tenant", database: "default_database", collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5");
+            return countCollection;
+        }
 
-            List<List<float>> embeddings1 = new List<List<float>>
+        /// <summary>
+        /// TODO : does not find the collection, even if it exists. 
+        /// The collection is created with GetOrCreate = true, but can not be found with GetCollectionAsync.
+        /// </summary>
+        /// <returns></returns>
+        public static async Task<Collection> GetCollectionAsync_KO() 
+        {
+            var client = CreateClient();
+
+            // Dos not work : we should use the name not the id
+            var myCollection = await client.Collection.GetCollectionAsync(tenant: "default_tenant",
+                database: "default_database", 
+                collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5");
+
+            return myCollection;
+        }
+
+        public static async Task<Collection> GetCollectionAsync(string collectionName = "my_collection2")
+        {
+            var client = CreateClient();
+
+            // Warning : collectionId is the collection name, not the collection id.
+            // The collection id is a guid, but the collection name is a string.
+            var myCollection = await client.Collection.GetCollectionAsync(tenant: "default_tenant",
+                database: "default_database",
+                collectionId: collectionName);
+
+            return myCollection;
+        }
+
+        public static async Task TestCollectionUpsertAsync()
+        {
+            var client = CreateClient();
+
+
+            List<IList<float>> embeddingsPayLoadVariant1 = new List<IList<float>>
             {
-                new List<float> { 0.1f, 0.2f },
-                new List<float> { 0.3f, 0.4f }
+                GetEmbeddingForDoc1(),
+                GetEmbeddingForDoc2()
             };
 
-            var embeddingsPayload1 = new EmbeddingsPayload
+            var embeddings = new EmbeddingsPayload
             {
-                EmbeddingsPayloadVariant1 = (IList<IList<float>>)embeddings1,
+                EmbeddingsPayloadVariant1 = embeddingsPayLoadVariant1,
                 EmbeddingsPayloadVariant2 = null
             };
 
             var upsertPayload = new UpsertCollectionRecordsPayload
             {
-                Embeddings = embeddingsPayload1,
+                Embeddings = embeddings,
                 Ids = new List<string> { "id1", "id2" },
-                Documents = new List<string> { "This is a document about pineapple", "This is a document about oranges" }
+                Documents = new List<string> { "This is a document about nice pineapple", "This is a document about juicy oranges" }
             };
 
+            // Get our collection
+            Collection collection2 = await GetOrCreateCollection2(client);
 
             await client.Record.CollectionUpsertAsync(tenant: "default_tenant",
                 database: "default_database",
-                collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5",
+                collectionId: collection2.Id.ToString(),
                 request: upsertPayload);
 
 
@@ -369,15 +381,13 @@ namespace ChromaDBTest
 
         }
         /// <summary>
-        /// Given a list of embeddings, finds the documents the nearest to the embeddings in the collection. 
+        /// Given a list of embeddingsPayloadVariant1, finds the documents the nearest to the embeddingsPayloadVariant1 in the collection. 
         /// The result is a list of documents, one for each embedding in the query.
         /// </summary>
         /// <returns></returns>
         public static async Task TestCollectionQueryAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             // Get our collection
             Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
@@ -399,14 +409,14 @@ namespace ChromaDBTest
 
 
 
-            // Fake embeddings for testing (384 dimensions)
-            global::System.Collections.Generic.List<float> embedding1 = new global::System.Collections.Generic.List<float>();
+            // Fake embeddingsPayloadVariant1 for testing (384 dimensions)
+            List<float> embedding1 = new List<float>();
             for (int i = 0; i < 384; i++)
             {
                 embedding1.Add(0.1f);
             }
 
-            global::System.Collections.Generic.List<float> embedding2 = new global::System.Collections.Generic.List<float>();
+            List<float> embedding2 = new List<float>();
             for (int i = 0; i < 384; i++)
             {
                 embedding2.Add(0.2f);
@@ -474,9 +484,7 @@ namespace ChromaDBTest
 
         public static async Task TestCollectionSearchAsync()
         {
-            var client = new ChromaClient(
-                  apiKey: "test",
-                  baseUri: new Uri($"http://127.0.0.1:8000"));
+            var client = CreateClient();
 
             // Get our collection
             Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
@@ -518,6 +526,72 @@ namespace ChromaDBTest
                 database: "default_database",
                 collectionId: collection2.Id.ToString(),
                 request: searchRequestPayload);
+        }
+
+
+
+        public static ChromaClient CreateClient()
+        {
+            var client = new ChromaClient(
+                 apiKey: "NotNeededForLocalhost",
+                 baseUri: new Uri($"http://127.0.0.1:8000"));
+
+            return client;
+        }
+
+        public static Task<Collection> GetOrCreateCollection2(ChromaClient? client = null)
+        {
+            return GetOrCreateCollection("my_collection2", client);
+        }
+
+        public static async Task<Collection> GetOrCreateCollection(string collectionName, ChromaClient? client = null)
+        {
+            client ??= CreateClient();
+
+            // Get our collection
+            Collection collection = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
+                database: "default_database",
+                request: new CreateCollectionPayload
+                {
+                    Name = collectionName,
+                    GetOrCreate = true,
+                    //Metadata = null,
+                    //Configuration = null
+                });
+
+            return collection;
+        }
+
+        public static IList<float> GetEmbeddingForDoc1()
+        {
+            return GetEmbedding(0.1f);
+        }
+        public static IList<float> GetEmbeddingForDoc2()
+        {
+            return GetEmbedding(0.2f);
+        }
+
+        public static IList<float> GetEmbeddingForDoc3()
+        {
+            return GetEmbedding(0.3f);
+        }
+
+        public static IList<float> GetEmbeddingForDoc4()
+        {
+            return GetEmbedding(0.4f);
+        }
+
+        public static IList<float> GetEmbedding(float value)
+        {
+            // Fake embeddingsPayloadVariant1 for testing (384 dimensions)
+            List<float> embedding = new List<float>();
+            
+            for (int i = 0; i < 384; i++)
+            {
+                embedding.Add(value);
+            }
+
+            return embedding;
         }
 
     }
