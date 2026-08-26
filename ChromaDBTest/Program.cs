@@ -41,10 +41,15 @@ await TryAGIChromaTest.TestCollectionAddAsync("my_collection1");
 await TryAGIChromaTest.TestCollectionAddAsync("my_collection2");
 await TryAGIChromaTest.TestCollectionAddAsync("my_collection3");
 
+await TryAGIChromaTest.TestCollectionQueryAsync("my_collection1");
+await TryAGIChromaTest.TestCollectionQueryAsync("my_collection2");
+await TryAGIChromaTest.TestCollectionQueryAsync("my_collection3");
 
 await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection1");
 await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection2");
 await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection3");
+
+
 
 
 await TryAGIChromaTest.TestListingOfDatabases();
@@ -61,7 +66,7 @@ await TryAGIChromaTest.TestCreateCollectionAsyncWithExistingCollection();
 // Not working yet.
 //await TryAGIChromaTest.TestCollectionSearchAsync();
 
-await TryAGIChromaTest.TestCollectionQueryAsync();
+
 
 /*
  * Tests using the ChromaDB.Client library.

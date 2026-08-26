@@ -384,49 +384,20 @@ namespace ChromaDBTest
         /// The result is a list of documents, one for each embedding in the query.
         /// </summary>
         /// <returns></returns>
-        public static async Task TestCollectionQueryAsync(ChromaClient? client = null)
+        public static async Task TestCollectionQueryAsync(string collectionName, ChromaClient? client = null)
         {
             client ??= CreateClient();
 
             // Get our collection
-            Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
-                database: "default_database",
-                request: new CreateCollectionPayload
-                {
-                    Name = "my_collection2",
-                    GetOrCreate = true,
-                    //Metadata = null,
-                    //Configuration = null
-                });
-
-
-            //SearchPayloadFilter searchPayloadFilter = new SearchPayloadFilter
-            //{
-            //    QueryIds = new List<string> { "id1", "id2" },
-            //    WhereClause = null
-            //};
-
-
+            Collection collection = await GetOrCreateCollection(collectionName, client);
 
             // Fake embeddingsPayloadVariant1 for testing (384 dimensions)
-            List<float> embedding1 = new List<float>();
-            for (int i = 0; i < 384; i++)
-            {
-                embedding1.Add(0.1f);
-            }
-
-            List<float> embedding2 = new List<float>();
-            for (int i = 0; i < 384; i++)
-            {
-                embedding2.Add(0.2f);
-            }
-
             QueryRequestPayloadVariant2 queryRequestPayloadVariant2 = new QueryRequestPayloadVariant2
             {
                 QueryEmbeddings = new List<IList<float>>
                 {
-                    embedding1,
-                    embedding2
+                    GetEmbeddingForDoc1(),
+                    GetEmbeddingForDoc2()
                 },
                 NResults = 10,
                 Include = new List<Include> {
@@ -443,7 +414,7 @@ namespace ChromaDBTest
 
             QueryResponse queryResponse = await client.Record.CollectionQueryAsync(tenant: "default_tenant",
                 database: "default_database",
-                collectionId: collection2.Id.ToString(),
+                collectionId: collection.Id.ToString(),
                 request: queryRequestPayload,
                 limit: 10,
                 offset: 0
