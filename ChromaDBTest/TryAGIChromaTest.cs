@@ -14,9 +14,9 @@ namespace ChromaDBTest
     /// </summary>
     public static class TryAGIChromaTest
     {
-        public static async Task GetClientVersion()
+        public static async Task GetClientVersion(ChromaClient? client = null)
         {
-            var client = CreateClient();
+            client ??= CreateClient();
 
             string version = await client.System.VersionAsync();
             Console.WriteLine($"Chroma version: {version}");
@@ -223,7 +223,7 @@ namespace ChromaDBTest
 
         }
 
-        public static async Task TestCollectionAddAsync()
+        public static async Task TestCollectionAddAsync(string collectionName)
         {
             var client = CreateClient();
 
@@ -250,15 +250,7 @@ namespace ChromaDBTest
             };
 
             // Get the collection where we want to add records
-            Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
-                database: "default_database",
-                request: new CreateCollectionPayload
-                {
-                    Name = "my_collection2",
-                    GetOrCreate = true,
-                    //Metadata = null,
-                    //Configuration = null
-                });
+            Collection collection2 = await GetOrCreateCollection(collectionName, client);
 
             // Add records to the collection
             await client.Record.CollectionAddAsync(tenant: "default_tenant",
@@ -313,9 +305,9 @@ namespace ChromaDBTest
             return myCollection;
         }
 
-        public static async Task<Collection> GetCollectionAsync(string collectionName = "my_collection2")
+        public static async Task<Collection> GetCollectionAsync(string collectionName = "my_collection2", ChromaClient? client = null)
         {
-            var client = CreateClient();
+            client ??= CreateClient();
 
             // Warning : collectionId is the collection name, not the collection id.
             // The collection id is a guid, but the collection name is a string.
@@ -326,9 +318,9 @@ namespace ChromaDBTest
             return myCollection;
         }
 
-        public static async Task TestCollectionUpsertAsync()
+        public static async Task TestCollectionUpsertAsync(ChromaClient? client = null)
         {
-            var client = CreateClient();
+            client ??= CreateClient();
 
 
             List<IList<float>> embeddingsPayLoadVariant1 = new List<IList<float>>
@@ -385,9 +377,9 @@ namespace ChromaDBTest
         /// The result is a list of documents, one for each embedding in the query.
         /// </summary>
         /// <returns></returns>
-        public static async Task TestCollectionQueryAsync()
+        public static async Task TestCollectionQueryAsync(ChromaClient? client = null)
         {
-            var client = CreateClient();
+            client ??= CreateClient();
 
             // Get our collection
             Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
@@ -482,9 +474,9 @@ namespace ChromaDBTest
         }
 
 
-        public static async Task TestCollectionSearchAsync()
+        public static async Task TestCollectionSearchAsync(ChromaClient? client = null)
         {
-            var client = CreateClient();
+            client ??= CreateClient();
 
             // Get our collection
             Collection collection2 = await client.Collection.CreateCollectionAsync(tenant: "default_tenant",
@@ -539,9 +531,19 @@ namespace ChromaDBTest
             return client;
         }
 
+        public static Task<Collection> GetOrCreateCollection1(ChromaClient? client = null)
+        {
+            return GetOrCreateCollection("my_collection1", client);
+        }
+
         public static Task<Collection> GetOrCreateCollection2(ChromaClient? client = null)
         {
             return GetOrCreateCollection("my_collection2", client);
+        }
+
+        public static Task<Collection> GetOrCreateCollection3(ChromaClient? client = null)
+        {
+            return GetOrCreateCollection("my_collection3", client);
         }
 
         public static async Task<Collection> GetOrCreateCollection(string collectionName, ChromaClient? client = null)
