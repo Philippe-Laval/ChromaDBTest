@@ -1,5 +1,6 @@
 ﻿// https://github.com/ssone95/ChromaDB.Client
 
+using Chroma;
 using ChromaDB.Library;
 using ChromaDBTest;
 using Microsoft.VisualBasic;
@@ -8,6 +9,22 @@ using Microsoft.VisualBasic;
 // Tests using the new ChromaClient, which is using the new chroma api v2, so we need to use the v2 endpoint for testing.
 
 ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
+
+var version = await chromaDBClient.GetVersionAsync();
+Console.WriteLine($"Chroma version: {version}");
+
+var heartbeat = await chromaDBClient.GetHeartbeatAsync();
+Console.WriteLine($"Heartbeat: {heartbeat.Nanosecond_heartbeat}");
+
+var healthcheck = await chromaDBClient.GetHealthcheckAsync();
+Console.WriteLine($"Healthcheck: {healthcheck ?? "Unknown"}");
+
+var preFlightChecks = await chromaDBClient.GetPreFlightChecksAsync();
+Console.WriteLine($"MaxBatchSize: {preFlightChecks.MaxBatchSize}");
+Console.WriteLine($"SupportsBase64Encoding: {preFlightChecks.SupportsBase64Encoding}");
+Console.WriteLine($"AdditionalProperties: {preFlightChecks.AdditionalProperties}");
+
+
 
 var databases = await chromaDBClient.ListDatabasesAsync();
 foreach (var db in databases)
@@ -66,13 +83,14 @@ if (database1 != null)
     var c10 = await database1.GetOrCreateCollection("collection10");
     var c11 = await database1.GetOrCreateCollection("collection11");
 
+    var myCollection = await database1.GetCollectionAsync("collection10");
+    await database1.DeleteCollectionAsync("collection11");
+
     var collectionDb1s = await database1.ListCollectionsAsync();
     foreach (var collection in collectionDb1s)
     {
         Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
     }
-
-    var myCollection = await database1.GetCollectionAsync("collection10");
 }
 
 if (database2 != null)
@@ -80,13 +98,14 @@ if (database2 != null)
     var c20 = await database2.GetOrCreateCollection("collection20");
     var c21 = await database2.GetOrCreateCollection("collection21");
 
+    var myCollection = await database2.GetCollectionAsync("collection20");
+    await database2.DeleteCollectionAsync("collection21");
+
     var collectionDb2s = await database2.ListCollectionsAsync();
     foreach (var collection in collectionDb2s)
     {
         Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
     }
-
-    var myCollection = await database2.GetCollectionAsync("collection20");
 }
 
 

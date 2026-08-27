@@ -32,7 +32,6 @@ namespace ChromaDBTest
             Console.WriteLine($"MaxBatchSize: {checklistResponse.MaxBatchSize}");
             Console.WriteLine($"SupportsBase64Encoding: {checklistResponse.SupportsBase64Encoding}");
             Console.WriteLine($"AdditionalProperties: {checklistResponse.AdditionalProperties}");
-
         }
 
         public static async Task ResetTheServer(ChromaClient? client = null)

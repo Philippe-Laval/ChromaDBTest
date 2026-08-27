@@ -78,7 +78,27 @@ namespace ChromaDB.Library
             return new ChromaDBCollection(collection, ChromaClient);
         }
 
+        public async Task DeleteCollectionAsync(string collectionName)
+        {
+            try
+            {
+                Collection? collection = await ChromaClient.Collection.GetCollectionAsync(tenant: Tenant, database: Name, collectionId: collectionName);
+                if (collection != null)
+                {
+                    // Delete the collection
+                    var deleteCollectionResponse = await ChromaClient.Collection.DeleteCollectionAsync(tenant: Tenant,
+                    database: Name,
+                    collectionId: collection.Name.ToString());
 
-        
+                    Console.WriteLine($"Delete collection response: {deleteCollectionResponse}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting collection: {ex.Message}");
+            }
+
+        }
+
     }
 }

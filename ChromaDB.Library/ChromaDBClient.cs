@@ -19,6 +19,35 @@ public class ChromaDBClient
              baseUri: new Uri($"http://{host}:{port}"));
     }
 
+    #region Server Management
+
+    public async Task<string> GetVersionAsync()
+    {
+        string version = await ChromaClient.System.VersionAsync();
+        return version ?? "Unknown";
+    }
+
+    public async Task<HeartbeatResponse> GetHeartbeatAsync()
+    {
+        HeartbeatResponse heartbeat = await ChromaClient.System.HeartbeatAsync();
+        return heartbeat;
+    }
+
+    public async Task<string> GetHealthcheckAsync()
+    {
+        string healthcheck = await ChromaClient.System.HealthcheckAsync();
+        return healthcheck ?? "Unknown";
+    }
+
+    public async Task<ChecklistResponse> GetPreFlightChecksAsync()
+    {
+        ChecklistResponse checklistResponse = await ChromaClient.System.PreFlightChecksAsync();
+        return checklistResponse;
+    }
+
+    #endregion
+
+
     #region Database Management
 
     public async Task<ChromaDBDatabase?> CreateDatabaseAsync(string databaseName,
@@ -158,9 +187,38 @@ public class ChromaDBClient
         return result;
     }
 
+    /// <summary>
+    /// Delete a collection
+    /// </summary>
+    /// <returns></returns>
+    public async Task DeleteCollectionAsync(string collectionName,
+       string tenant = "default_tenant",
+       string database = "default_database")
+    {
+        try
+        {
+            Collection? collection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant, database: database, collectionId: collectionName);
+            if (collection != null)
+            {
+                // Delete the collection
+                var deleteCollectionResponse = 
+                    await ChromaClient.Collection.DeleteCollectionAsync(tenant: tenant,
+                        database: database,
+                        collectionId: collection.Name.ToString());
+
+                Console.WriteLine($"Delete collection response: {deleteCollectionResponse}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting collection: {ex.Message}");
+        }
+
+    }
+
     #endregion
 
-   
+
 
 
 
@@ -172,11 +230,11 @@ public class ChromaDBClient
     //{
     //    // Warning : the parameter "collectionId" is the vecItem name, not the vecItem id.
     //    // The vecItem id is a guid, but the vecItem name is a string.
-    //    var myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant,
+    //    var collection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant,
     //        database: database,
     //        collectionId: collectionName);
 
-    //    return myCollection;
+    //    return collection;
     //}
 
 
