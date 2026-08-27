@@ -86,7 +86,7 @@ if (database1 != null)
     var myCollection = await database1.GetCollectionAsync("collection10");
     await database1.DeleteCollectionAsync("collection11");
 
-    await database1.UpdateCollectionAsync("collection10", "collection1");
+    //await database1.UpdateCollectionAsync("collection10", "collection1");
 
     var collectionDb1s = await database1.ListCollectionsAsync();
     foreach (var collection in collectionDb1s)
@@ -103,7 +103,7 @@ if (database2 != null)
     var myCollection = await database2.GetCollectionAsync("collection20");
     await database2.DeleteCollectionAsync("collection21");
 
-    await database2.UpdateCollectionAsync("collection20", "collection2");
+    //await database2.UpdateCollectionAsync("collection20", "collection2");
 
     var collectionDb2s = await database2.ListCollectionsAsync();
     foreach (var collection in collectionDb2s)
@@ -118,6 +118,48 @@ var include = new List<Include> { Include.Documents,
                     Include.Distances,
                     Include.Metadatas,
                     Include.Uris };
+
+var documents = new List<string> { "This is a document about lemons", "This is a document about mangos" };
+var uris = new List<string> { "http://localhost/doc1", "http://localhost/doc2" };
+
+// Fake embeddingsPayloadVariant1 for testing (384 dimensions)
+
+
+FixedEmbeddingFunction embeddingFunction = new FixedEmbeddingFunction(384);
+embeddingFunction.Value = 0.1f;
+
+IList<float> embeddings1 = embeddingFunction.GenerateEmbeddings(documents[0]);
+embeddingFunction.Value = 0.2f;
+IList<float> embeddings2 = embeddingFunction.GenerateEmbeddings(documents[1]);
+
+IList<IList<float>> embeddings = new List<IList<float>>
+{
+    embeddings1,
+    embeddings2
+};
+
+Dictionary<string, object> meta1 = new Dictionary<string, object>
+{
+    { "page", 5 },
+    { "book", "All about lemons" }
+};
+
+Dictionary<string, object> meta2 = new Dictionary<string, object>
+{
+    { "page", 15 },
+    { "book", "All about mangos" }
+};
+
+IList<IDictionary<string, object>> metadatas = new List<IDictionary<string, object>>
+{
+    meta1,
+    meta2
+};
+
+await chromaDBClient.CollectionAddAsync("collection10", 
+    ids, embeddings, documents, uris, metadatas,
+    "database1", "default_tenant");
+
 
 /*
   Include = new List<Include> {

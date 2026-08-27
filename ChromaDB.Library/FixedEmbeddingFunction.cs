@@ -21,25 +21,37 @@ public class FixedEmbeddingFunction : IEmbeddingFunction
     public object Configuration => new { Type = "FixedEmbeddingFunction", Dimension = _dimension };
 
 
-    public float[][] GenerateEmbeddings(IEnumerable<string> documents)
+    public IList<IList<float>> GenerateEmbeddings(IEnumerable<string> documents)
     {
         if (documents == null)
             throw new ArgumentNullException(nameof(documents));
 
         return documents
             .Select(doc => GenerateSingleEmbedding(doc ?? string.Empty, Value))
-            .ToArray();
+            .ToList<IList<float>>();
     }
 
-    private float[] GenerateSingleEmbedding(string document, float value)
+    public IList<float> GenerateEmbeddings(string document)
     {
+        if (document == null)
+            throw new ArgumentNullException(nameof(document));
+
+        return GenerateSingleEmbedding(document, Value);
+    }
+
+    private IList<float> GenerateSingleEmbedding(string document, float value)
+    {
+        var result = new List<float>();
+        for (var i = 0; i < _dimension; i++)
+        {
+            result.Add(0f);
+        }
+
         if (string.IsNullOrWhiteSpace(document))
         {
             // For empty documents, return a zero vector
-            return new float[_dimension];
+            return result;
         }
-
-        var result = new float[_dimension];
 
         for (int index = 0; index < _dimension; index++)
         {

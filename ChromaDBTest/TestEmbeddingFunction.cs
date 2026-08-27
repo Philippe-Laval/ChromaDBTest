@@ -23,13 +23,34 @@ public class TestEmbeddingFunction : IEmbeddingFunction
         _random = new Random(42); // Fixed seed for reproducibility
     }
 
-    public float[][] GenerateEmbeddings(IEnumerable<string> documents)
+
+    public IList<IList<float>> GenerateEmbeddings(IEnumerable<string> documents)
     {
-        return documents.Select(_ => Enumerable.Range(0, _dimensions)
-            .Select(__ => (float)_random.NextDouble())
-            .ToArray())
-            .ToArray();
+        if (documents == null)
+            throw new ArgumentNullException(nameof(documents));
+
+        return documents
+            .Select(doc => GenerateSingleEmbedding())
+            .ToList<IList<float>>();
     }
+
+    public IList<float> GenerateEmbeddings(string document)
+    {
+        if (document == null)
+            throw new ArgumentNullException(nameof(document));
+
+        return GenerateSingleEmbedding();
+    }
+
+    public IList<float> GenerateSingleEmbedding()
+    {
+        return Enumerable.Range(0, _dimensions)
+            .Select(__ => (float)_random.NextDouble())
+            .ToList<float>();
+    }
+
+
+
 
     public object Configuration => new { model_name = "test_embeddings" };
 }

@@ -1,4 +1,6 @@
-﻿namespace ChromaDB.Library;
+﻿using Chroma;
+
+namespace ChromaDB.Library;
 
 /// <summary>
 /// Deterministic embedding function that creates reproducible embeddings
@@ -29,25 +31,37 @@ public class DeterministicEmbeddingFunction : IEmbeddingFunction
     /// </summary>
     /// <param name="documents">Documents to generate embeddings for</param>
     /// <returns>Array of embedding vectors</returns>
-    public float[][] GenerateEmbeddings(IEnumerable<string> documents)
+    public IList<IList<float>> GenerateEmbeddings(IEnumerable<string> documents)
     {
         if (documents == null)
             throw new ArgumentNullException(nameof(documents));
 
         return documents
             .Select(doc => GenerateSingleEmbedding(doc ?? string.Empty))
-            .ToArray();
+            .ToList<IList<float>>();
     }
 
-    private float[] GenerateSingleEmbedding(string document)
+    public IList<float> GenerateEmbeddings(string document)
     {
+        if (document == null)
+            throw new ArgumentNullException(nameof(document));
+
+        return GenerateSingleEmbedding(document);   
+    }
+
+    private IList<float> GenerateSingleEmbedding(string document)
+    {
+        var result = new List<float>();
+        for (var i = 0; i < _dimension; i++)
+        {
+            result.Add(0f);
+        }
+
         if (string.IsNullOrWhiteSpace(document))
         {
             // For empty documents, return a zero vector
-            return new float[_dimension];
+            return result;
         }
-
-        var result = new float[_dimension];
 
         // Normalize the text: lowercase, remove punctuation, split to words
         var words = new string(document.ToLowerInvariant()
@@ -90,7 +104,7 @@ public class DeterministicEmbeddingFunction : IEmbeddingFunction
         float magnitude = (float)Math.Sqrt(result.Sum(x => x * x));
         if (magnitude > 0)
         {
-            for (int i = 0; i < result.Length; i++)
+            for (int i = 0; i < result.Count; i++)
             {
                 result[i] /= magnitude;
             }

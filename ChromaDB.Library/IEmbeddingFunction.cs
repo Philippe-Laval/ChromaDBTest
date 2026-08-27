@@ -9,12 +9,14 @@ namespace ChromaDB.Library;
 /// </summary>
 public interface IEmbeddingFunction
 {
+    IList<float> GenerateEmbeddings(string document);
+
     /// <summary>
     /// Generate embeddings for a list of documents
     /// </summary>
     /// <param name="documents">List of document texts</param>
     /// <returns>Array of embedding vectors</returns>
-    float[][] GenerateEmbeddings(IEnumerable<string> documents);
+    IList<IList<float>> GenerateEmbeddings(IEnumerable<string> documents);
 
     /// <summary>
     /// Configuration details for serialization

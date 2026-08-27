@@ -1,6 +1,7 @@
 ﻿using Chroma;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 using System.Resources;
 using System.Text;
 using System.Xml.Linq;
@@ -113,8 +114,8 @@ public class ChromaDBClient
     #region Collection Management
 
     public async Task<ChromaDBCollection?> GetCollectionAsync(string collectionName,
-        string tenant = "default_tenant",
-        string database = "default_database")
+        string database = "default_database",
+        string tenant = "default_tenant")
     {
         ChromaDBCollection? chromaDBCollection = null;
         try
@@ -138,8 +139,8 @@ public class ChromaDBClient
     }
 
     public async Task<ChromaDBCollection> GetOrCreateCollection(string collectionName,
-       string tenant = "default_tenant",
-       string database = "default_database")
+        string database = "default_database",
+        string tenant = "default_tenant")
     {
         Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
             database: database,
@@ -191,8 +192,8 @@ public class ChromaDBClient
     /// </summary>
     /// <returns></returns>
     public async Task DeleteCollectionAsync(string collectionName,
-       string tenant = "default_tenant",
-       string database = "default_database")
+        string database = "default_database",
+        string tenant = "default_tenant")
     {
         try
         {
@@ -223,8 +224,8 @@ public class ChromaDBClient
     /// <param name="database"></param>
     /// <returns></returns>
     public async Task UpdateCollectionAsync(string oldCollectionName, string newCollectionName,
-       string tenant = "default_tenant",
-       string database = "default_database")
+        string database = "default_database",
+        string tenant = "default_tenant")
     {
         Collection? oldCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant, database: database, collectionId: oldCollectionName);
         if (oldCollection != null)
@@ -266,8 +267,8 @@ public class ChromaDBClient
         object? WhereDocument,
         int? limit,
         int? offset,
-        string tenant = "default_tenant",
-        string database = "default_database")
+        string database = "default_database",
+        string tenant = "default_tenant")
     {
         List<ChromaDocument> result = new List<ChromaDocument>();
 
@@ -383,8 +384,8 @@ public class ChromaDBClient
         object? WhereDocument,
         int? limit,
         int? offset,
-        string tenant = "default_tenant",
-        string database = "default_database")
+        string database = "default_database",
+        string tenant = "default_tenant")
     {
         // Get our collection
         Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
@@ -460,6 +461,64 @@ public class ChromaDBClient
 
         }
 
+    }
+
+
+    public async Task CollectionAddAsync(string collectionName,
+        IList<string> ids,
+        IList<IList<float>> embeddings,
+        IList<string>? documents,
+        IList<string>? uris,
+        IList<IDictionary<string, object>>? metadatas,
+        string database = "default_database",
+        string tenant = "default_tenant")
+    {
+        var embeddingsPayload = new EmbeddingsPayload
+        {
+            EmbeddingsPayloadVariant1 = embeddings,
+            EmbeddingsPayloadVariant2 = null
+        };
+
+        List<OneOf<object, global::Chroma.HashMap>>? metas = null;
+
+        if (metadatas is not null)
+        {
+            metas = new List<OneOf<object, global::Chroma.HashMap>>();
+
+            foreach (var metadata in metadatas)
+            {
+                OneOf<object, HashMap> oneOf = new Chroma.OneOf<object, HashMap>(metadatas, null);
+                metas.Add(oneOf);
+            }
+        }
+
+        AddCollectionRecordsPayload addCollectionRecordsPayload = new AddCollectionRecordsPayload
+        {
+            // required fields
+            Ids = ids,
+            Embeddings = embeddingsPayload,
+            // optional fields
+            Documents = documents,
+            Metadatas = metas,
+            Uris = uris
+        };
+
+        // Get the collection where we want to add records
+        Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
+              database: database,
+              request: new CreateCollectionPayload
+              {
+                  Name = collectionName,
+                  GetOrCreate = true,
+                  Metadata = null,
+                  Configuration = null
+              });
+
+        // Add records to the collection
+        var response = await ChromaClient.Record.CollectionAddAsync(tenant: tenant,
+            database: database,
+            collectionId: collection.Id.ToString(),
+            request: addCollectionRecordsPayload);
     }
 
     #endregion
