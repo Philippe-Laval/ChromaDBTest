@@ -1,6 +1,7 @@
 ﻿using Chroma;
 using System;
 using System.Collections.Generic;
+using System.Resources;
 using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -20,17 +21,23 @@ public class ChromaDBClient
 
     #region Database Management
 
-    public async Task CreateDatabaseAsync(string databaseName,
+    public async Task<ChromaDBDatabase?> CreateDatabaseAsync(string databaseName,
         string tenant = "default_tenant")
     {
+        ChromaDBDatabase? chromaDBDatabase = null;
+
         try
         {
             var createDatabaseResponse = await ChromaClient.Database.CreateDatabaseAsync(tenant, databaseName);
+
+            chromaDBDatabase = new ChromaDBDatabase(null, databaseName, tenant, ChromaClient);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error creating a database: {ex.Message}");
         }
+
+        return chromaDBDatabase;
     }
 
     public async Task DeleteDatabaseAsync(string databaseName, string tenant = "default_tenant")
@@ -54,7 +61,7 @@ public class ChromaDBClient
             var databases = await ChromaClient.Database.ListDatabasesAsync(tenant);
             foreach (var database in databases)
             {
-                result.Add(new ChromaDBDatabase(database.Id, database.Name, database.Tenant));
+                result.Add(new ChromaDBDatabase(database.Id, database.Name, database.Tenant, ChromaClient));
             }
         }
         catch (Exception ex)
@@ -65,57 +72,47 @@ public class ChromaDBClient
         return result;
     }
 
+    #endregion
+
+    #region Collection Management
+
     public async Task<int> CountCollectionsAsync(string databaseName,
         string tenant = "default_tenant")
     {
         var count = await ChromaClient.Collection.CountCollectionsAsync(tenant: tenant, database: databaseName);
-        Console.WriteLine($"Collection count: {count}");
         return count;
     }
 
-    public async Task TestGetCollectionAsync()
+    public async Task<ChromaDBCollection?> GetCollectionAsync(string collectionId,
+        string tenant = "default_tenant",
+        string database = "default_database")
     {
+        ChromaDBCollection? chromaDBCollection = null;
         try
         {
-            // Bug for now : throw an exception when the collection does not exist
-            Collection? myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: "default_tenant", database: "default_database", collectionId: "c359bdb6-c29d-4fe3-87f1-b13ec62061e5");
+            // Warning : the parameter "collectionId" is the vecItem name, not the vecItem id.
+            // The vecItem id is a guid, but the vecItem name is a string.
+
+            // Bug for now : throw an exception when the vecItem does not exist
+            Collection? myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant, database: database, collectionId: collectionId);
             if (myCollection != null)
             {
-                Console.WriteLine($"Collection: {myCollection.Name} {myCollection.Dimension} {myCollection.Database} {myCollection.Tenant}");
-            }
-            else
-            {
-                Console.WriteLine("Collection not found.");
+                chromaDBCollection = new ChromaDBCollection(myCollection, ChromaClient);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error listing databases: {ex.Message}");
+            Console.WriteLine($"Exception: {ex.Message}");
         }
+
+        return chromaDBCollection;
     }
 
-    public async Task TestListCollectionsAsync(string databaseName,
-        string tenant = "default_tenant")
+    public async Task<ChromaDBCollection> GetOrCreateCollection(string collectionName,
+       string tenant = "default_tenant",
+       string database = "default_database")
     {
-        var collections = await ChromaClient.Collection.ListCollectionsAsync(
-            tenant: tenant,
-            database: databaseName);
-
-        foreach (var collection in collections)
-        {
-            Console.WriteLine($"Collection: {collection.Id} {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
-        }
-    }
-
-    #endregion
-
-
-
-    public async Task<Collection> GetOrCreateCollection(string collectionName, 
-        string tenant = "default_tenant",
-        string database = "default_database")
-    {
-        // Get our collection
+        // Get our vecItem
         Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
             database: database,
             request: new CreateCollectionPayload
@@ -126,90 +123,62 @@ public class ChromaDBClient
                 //Configuration = null
             });
 
-        return collection;
+        return new ChromaDBCollection(collection, ChromaClient);
     }
 
-    public async Task<Collection> GetCollectionAsync(string collectionName, 
-        string tenant = "default_tenant",
-        string database = "default_database")
+    public async Task<List<ChromaDBCollection>> ListCollectionsAsync(string databaseName,
+        string tenant = "default_tenant")
     {
-        // Warning : the parameter "collectionId" is the collection name, not the collection id.
-        // The collection id is a guid, but the collection name is a string.
-        var myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant,
-            database: database,
-            collectionId: collectionName);
+        List<ChromaDBCollection> result = new List<ChromaDBCollection>();
 
-        return myCollection;
-    }
+        var vecItems = await ChromaClient.Collection.ListCollectionsAsync(
+            tenant: tenant,
+            database: databaseName);
 
-    public async Task CollectionAddAsync(string collectionName,
-        string tenant = "default_tenant",
-        string database = "default_database")
-    {
-        // Fake embeddingsPayloadVariant1 for testing (384 dimensions)
-        IList<IList<float>> embeddingsPayloadVariant1 = new List<IList<float>>
+        foreach (var vecItem in vecItems)
+        {
+            Collection collection = new Collection
             {
-                GetEmbeddingForDoc3(),
-                GetEmbeddingForDoc4()
+                ConfigurationJson = vecItem.ConfigurationJson,
+                Database = vecItem.Database,
+                Dimension = vecItem.Dimension,
+                Id = vecItem.Id,
+                Name = vecItem.Name,
+                Tenant = vecItem.Tenant,
+                Version = vecItem.Version,
+                LogPosition = vecItem.LogPosition,
+                Metadata = vecItem.Metadata,
+                Schema = vecItem.Schema,
+                AdditionalProperties = vecItem.AdditionalProperties
             };
 
-        var embeddingsPayload = new EmbeddingsPayload
-        {
-            EmbeddingsPayloadVariant1 = embeddingsPayloadVariant1,
-            EmbeddingsPayloadVariant2 = null
-        };
-
-        AddCollectionRecordsPayload addCollectionRecordsPayload = new AddCollectionRecordsPayload
-        {
-            // required fields
-            Ids = new List<string> { "id3", "id4" },
-            Embeddings = embeddingsPayload,
-            // optional fields
-            Documents = new List<string> { "This is a document about lemons", "This is a document about mangos" }
-        };
-
-        // Get the collection where we want to add records
-        Collection collection = await GetOrCreateCollection(collectionName, tenant, database);
-
-        // Add records to the collection
-        await ChromaClient.Record.CollectionAddAsync(tenant: tenant,
-            database: database,
-            collectionId: collection.Id.ToString(),
-            request: addCollectionRecordsPayload);
-    }
-
-
-
-    public static IList<float> GetEmbeddingForDoc1()
-    {
-        return GetEmbedding(0.1f);
-    }
-    public static IList<float> GetEmbeddingForDoc2()
-    {
-        return GetEmbedding(0.2f);
-    }
-
-    public static IList<float> GetEmbeddingForDoc3()
-    {
-        return GetEmbedding(0.3f);
-    }
-
-    public static IList<float> GetEmbeddingForDoc4()
-    {
-        return GetEmbedding(0.4f);
-    }
-
-    public static IList<float> GetEmbedding(float value)
-    {
-        // Fake embeddingsPayloadVariant1 for testing (384 dimensions)
-        List<float> embedding = new List<float>();
-
-        for (int i = 0; i < 384; i++)
-        {
-            embedding.Add(value);
+            result.Add(new ChromaDBCollection(collection, ChromaClient));
         }
 
-        return embedding;
+        return result;
     }
+
+    #endregion
+
+   
+
+
+
+
+
+    //public async Task<Collection> GetCollectionAsync(string collectionName, 
+    //    string tenant = "default_tenant",
+    //    string database = "default_database")
+    //{
+    //    // Warning : the parameter "collectionId" is the vecItem name, not the vecItem id.
+    //    // The vecItem id is a guid, but the vecItem name is a string.
+    //    var myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant,
+    //        database: database,
+    //        collectionId: collectionName);
+
+    //    return myCollection;
+    //}
+
+
 }
 

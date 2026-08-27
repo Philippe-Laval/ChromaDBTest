@@ -52,6 +52,45 @@ Console.WriteLine($"Collection count: {count}");
 count = await chromaDBClient.CountCollectionsAsync("database2", "default_tenant");
 Console.WriteLine($"Collection count: {count}");
 
+var collections = await chromaDBClient.ListCollectionsAsync("database1", "default_tenant");
+foreach (var collection in collections)
+{
+    Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
+}
+
+var database1 = databases.FirstOrDefault(db => db.Name == "database1");
+var database2 = databases.FirstOrDefault(db => db.Name == "database2");
+
+if (database1 != null)
+{
+    var c10 = await database1.GetOrCreateCollection("collection10");
+    var c11 = await database1.GetOrCreateCollection("collection11");
+
+    var collectionDb1s = await database1.ListCollectionsAsync();
+    foreach (var collection in collectionDb1s)
+    {
+        Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
+    }
+
+    var myCollection = await database1.GetCollectionAsync("collection10");
+}
+
+if (database2 != null)
+{
+    var c20 = await database2.GetOrCreateCollection("collection20");
+    var c21 = await database2.GetOrCreateCollection("collection21");
+
+    var collectionDb2s = await database2.ListCollectionsAsync();
+    foreach (var collection in collectionDb2s)
+    {
+        Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
+    }
+
+    var myCollection = await database2.GetCollectionAsync("collection20");
+}
+
+
+
 
 
 
