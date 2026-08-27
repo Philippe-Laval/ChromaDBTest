@@ -1,8 +1,9 @@
 ﻿using Chroma;
+using ChromaDB.Library;
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 
@@ -377,6 +378,86 @@ namespace ChromaDBTest
         //    NResults = 2,
         //    Include = new List<string> { "metadatas", "documents", "distances" }     // "metadatas", "documents", "distances"
         //});
+
+
+        public static async Task TestCollectionGetAsync(string collectionName, ChromaClient? client = null)
+        {
+            client ??= CreateClient();
+
+            // Get our collection
+            Collection collection = await GetOrCreateCollection(collectionName, client);
+
+            GetRequestPayloadVariant2 getRequestPayloadVariant2 = new GetRequestPayloadVariant2
+            {
+                Ids = new List<string> { "id1", "id2" },
+                Include = new List<Include> { Include.Documents, 
+                    Include.Embeddings, 
+                    Include.Distances,
+                    Include.Metadatas,
+                    Include.Uris }
+            };
+
+            GetRequestPayload requestPayload = new GetRequestPayload
+            {
+                GetRequestPayloadVariant2 = getRequestPayloadVariant2,
+                RawWhereFields = null
+            };
+
+            GetResponse response = await client.Record.CollectionGetAsync(tenant: "default_tenant",
+                database: "default_database",
+                collectionId: collection.Id.ToString(),
+                request: requestPayload);
+
+            if (response != null)
+            {
+                QueryResult queryResult = new QueryResult
+                {
+                    Ids = response.Ids,
+                    //Distances = response.Distances,
+                    Embeddings = response.Embeddings,
+                    Documents = response.Documents,
+                    Metadatas = ConvertMetadatas(response.Metadatas),
+                    Uris = response.Uris
+                };
+
+                foreach(var document in queryResult.ToDocuments())
+                {
+                    Console.WriteLine($"Document Id: {document.Id}");
+                    Console.WriteLine($"Document Content: {document.Text}");
+                    Console.WriteLine($"Document Embedding: {string.Join(", ", document.Embeddings ?? new List<float>())}");
+                    Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object>())}");
+                    Console.WriteLine($"Document Uri: {document.Uri}");
+                }
+
+            }
+        }
+
+        private static IList<IDictionary<string, object>> ConvertMetadatas(IList<global::Chroma.OneOf<object, global::Chroma.HashMap>>? Metadatas)
+        {
+            var result = new List<IDictionary<string, object>>();
+
+            if (Metadatas != null)
+            {
+                foreach (var metadata in Metadatas)
+                {
+                    var dict = new Dictionary<string, object>();
+
+                    metadata.Switch(
+                        obj => { /* Handle object case */ },
+                        hashMap => {
+                            // Handles the HashMap case and adds its properties to the result dictionary
+                            foreach (var kvp in hashMap.AdditionalProperties)
+                            {
+                                dict[kvp.Key] = kvp.Value;
+                            }
+                        }
+                    );
+                    result.Add(dict);
+                }
+            }
+
+            return result;
+        }
 
 
         /// <summary>

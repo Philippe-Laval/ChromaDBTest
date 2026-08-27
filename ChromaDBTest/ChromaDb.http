@@ -6,6 +6,9 @@
 @collection = my_collection2
 @collection_id = c359bdb6-c29d-4fe3-87f1-b13ec62061e5
 
+###
+
+# show the web page with the docs
 GET {{ChromaDB_HostAddress}}/docs
 Accept: application/json
 

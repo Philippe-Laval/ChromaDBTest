@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Chroma\src\libs\Chroma\Chroma.csproj" />
+    <ProjectReference Include="..\ChromaDB.Library\ChromaDB.Library.csproj" />
   </ItemGroup>
 
 </Project>

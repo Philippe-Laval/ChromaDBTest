@@ -41,6 +41,11 @@ await TryAGIChromaTest.TestCollectionAddAsync("my_collection1");
 await TryAGIChromaTest.TestCollectionAddAsync("my_collection2");
 await TryAGIChromaTest.TestCollectionAddAsync("my_collection3");
 
+await TryAGIChromaTest.TestCollectionGetAsync("my_collection1", client);
+await TryAGIChromaTest.TestCollectionGetAsync("my_collection2", client);
+await TryAGIChromaTest.TestCollectionGetAsync("my_collection3", client);
+
+
 await TryAGIChromaTest.TestCollectionQueryAsync("my_collection1");
 await TryAGIChromaTest.TestCollectionQueryAsync("my_collection2");
 await TryAGIChromaTest.TestCollectionQueryAsync("my_collection3");
