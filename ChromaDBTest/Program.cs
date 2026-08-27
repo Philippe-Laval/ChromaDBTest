@@ -1,12 +1,59 @@
 ﻿// https://github.com/ssone95/ChromaDB.Client
 
+using ChromaDB.Library;
 using ChromaDBTest;
 using Microsoft.VisualBasic;
 
 // Make sure you have a ChromaDB server running at http://localhost:8000 before running this program.
-
-
 // Tests using the new ChromaClient, which is using the new chroma api v2, so we need to use the v2 endpoint for testing.
+
+ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
+
+var databases = await chromaDBClient.ListDatabasesAsync();
+foreach (var db in databases)
+{
+    Console.WriteLine($"Database: {db.Id} {db.Name} {db.Tenant}");
+}
+
+if (!databases.Any(db => db.Name == "database1"))
+{
+    await chromaDBClient.CreateDatabaseAsync("database1", "default_tenant");
+}
+
+if (!databases.Any(db => db.Name == "database2"))
+{
+    await chromaDBClient.CreateDatabaseAsync("database2", "default_tenant");
+}
+
+if (!databases.Any(db => db.Name == "database3"))
+{
+    await chromaDBClient.CreateDatabaseAsync("database3", "default_tenant");
+}
+
+// Refresh the list of databases after creation
+databases = await chromaDBClient.ListDatabasesAsync();
+
+if (databases.Any(db => db.Name == "database3"))
+{
+    await chromaDBClient.DeleteDatabaseAsync("database3", "default_tenant");
+}
+
+// Refresh the list of databases after deletion
+databases = await chromaDBClient.ListDatabasesAsync();
+foreach (var db in databases)
+{
+    Console.WriteLine($"Database: {db.Id} {db.Name} {db.Tenant}");
+}
+
+// Count collections in each database
+int count = await chromaDBClient.CountCollectionsAsync("database1", "default_tenant");
+Console.WriteLine($"Collection count: {count}");
+
+count = await chromaDBClient.CountCollectionsAsync("database2", "default_tenant");
+Console.WriteLine($"Collection count: {count}");
+
+
+
 
 var client = TryAGIChromaTest.CreateClient();
 
@@ -61,7 +108,7 @@ await TryAGIChromaTest.TestListingOfDatabases();
 await TryAGIChromaTest.TestCreationOfDatabase();
 await TryAGIChromaTest.TestDeleteCollectionAsync();
 
-int count = await TryAGIChromaTest.TestCountCollectionsAsync();
+count = await TryAGIChromaTest.TestCountCollectionsAsync();
 Console.WriteLine($"Collection count: {count}");
 
 await TryAGIChromaTest.TestCreateCollectionAsyncWithExistingCollection();
