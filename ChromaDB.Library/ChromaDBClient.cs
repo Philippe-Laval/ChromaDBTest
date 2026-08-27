@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Resources;
 using System.Text;
+using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChromaDB.Library;
@@ -213,7 +214,34 @@ public class ChromaDBClient
         {
             Console.WriteLine($"Error deleting collection: {ex.Message}");
         }
+    }
 
+    /// <summary>
+    /// Changes the collection name
+    /// </summary>
+    /// <param name="oldCollectionName"></param>
+    /// <param name="newCollectionName"></param>
+    /// <param name="tenant"></param>
+    /// <param name="database"></param>
+    /// <returns></returns>
+    public async Task UpdateCollectionAsync(string oldCollectionName, string newCollectionName,
+       string tenant = "default_tenant",
+       string database = "default_database")
+    {
+        Collection? oldCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant, database: database, collectionId: oldCollectionName);
+        if (oldCollection != null)
+        {
+            await ChromaClient.Collection.UpdateCollectionAsync(tenant: tenant,
+            database: database,
+            collectionId: oldCollection.Id.ToString(),
+            request: new UpdateCollectionPayload
+            {
+                NewName = newCollectionName,
+                // Could be used to update the configuration and metadata, but we don't want to change them here
+                NewConfiguration = null,
+                NewMetadata = null
+            });
+        }
     }
 
     #endregion
@@ -224,7 +252,7 @@ public class ChromaDBClient
 
 
 
-    //public async Task<Collection> GetCollectionAsync(string collectionName, 
+    //public async Task<Collection> GetCollectionAsync(string oldCollectionName, 
     //    string tenant = "default_tenant",
     //    string database = "default_database")
     //{
@@ -232,7 +260,7 @@ public class ChromaDBClient
     //    // The vecItem id is a guid, but the vecItem name is a string.
     //    var collection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant,
     //        database: database,
-    //        collectionId: collectionName);
+    //        collectionId: oldCollectionName);
 
     //    return collection;
     //}

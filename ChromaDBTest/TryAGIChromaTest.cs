@@ -220,7 +220,7 @@ namespace ChromaDBTest
                 // Delete the collection
                 var deleteCollectionResponse = await client.Collection.DeleteCollectionAsync(tenant: "default_tenant",
                     database: "default_database",
-                    collectionId: collection3.Id.ToString());
+                    collectionId: collection3.Name.ToString());
 
                 Console.WriteLine($"Delete collection response: {deleteCollectionResponse}");
             }

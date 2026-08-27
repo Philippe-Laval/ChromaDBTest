@@ -97,7 +97,24 @@ namespace ChromaDB.Library
             {
                 Console.WriteLine($"Error deleting collection: {ex.Message}");
             }
+        }
 
+        public async Task UpdateCollectionAsync(string oldCollectionName, string newCollectionName)
+        {
+            Collection? oldCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: Tenant, database: Name, collectionId: oldCollectionName);
+            if (oldCollection != null)
+            {
+                await ChromaClient.Collection.UpdateCollectionAsync(tenant: Tenant,
+                database: Name,
+                collectionId: oldCollection.Id.ToString(),
+                request: new UpdateCollectionPayload
+                {
+                    NewName = newCollectionName,
+                    // Could be used to update the configuration and metadata, but we don't want to change them here
+                    NewConfiguration = null,
+                    NewMetadata = null
+                });
+            }
         }
 
     }

@@ -86,6 +86,8 @@ if (database1 != null)
     var myCollection = await database1.GetCollectionAsync("collection10");
     await database1.DeleteCollectionAsync("collection11");
 
+    await database1.UpdateCollectionAsync("collection10", "collection1");
+
     var collectionDb1s = await database1.ListCollectionsAsync();
     foreach (var collection in collectionDb1s)
     {
@@ -100,6 +102,8 @@ if (database2 != null)
 
     var myCollection = await database2.GetCollectionAsync("collection20");
     await database2.DeleteCollectionAsync("collection21");
+
+    await database2.UpdateCollectionAsync("collection20", "collection2");
 
     var collectionDb2s = await database2.ListCollectionsAsync();
     foreach (var collection in collectionDb2s)
