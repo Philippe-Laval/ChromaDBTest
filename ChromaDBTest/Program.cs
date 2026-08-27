@@ -112,6 +112,12 @@ if (database2 != null)
     }
 }
 
+var ids = new List<string> { "id1", "id2" };
+var include = new List<Include> { Include.Documents,
+                    Include.Embeddings,
+                    Include.Distances,
+                    Include.Metadatas,
+                    Include.Uris };
 
 
 

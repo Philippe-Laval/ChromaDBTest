@@ -48,7 +48,6 @@ public class ChromaDBClient
 
     #endregion
 
-
     #region Database Management
 
     public async Task<ChromaDBDatabase?> CreateDatabaseAsync(string databaseName,
@@ -102,29 +101,29 @@ public class ChromaDBClient
         return result;
     }
 
-    #endregion
-
-    #region Collection Management
-
     public async Task<int> CountCollectionsAsync(string databaseName,
-        string tenant = "default_tenant")
+       string tenant = "default_tenant")
     {
         var count = await ChromaClient.Collection.CountCollectionsAsync(tenant: tenant, database: databaseName);
         return count;
     }
 
-    public async Task<ChromaDBCollection?> GetCollectionAsync(string collectionId,
+    #endregion
+
+    #region Collection Management
+
+    public async Task<ChromaDBCollection?> GetCollectionAsync(string collectionName,
         string tenant = "default_tenant",
         string database = "default_database")
     {
         ChromaDBCollection? chromaDBCollection = null;
         try
         {
-            // Warning : the parameter "collectionId" is the vecItem name, not the vecItem id.
+            // Warning : the parameter "collectionName" is the vecItem name, not the vecItem id.
             // The vecItem id is a guid, but the vecItem name is a string.
 
             // Bug for now : throw an exception when the vecItem does not exist
-            Collection? myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant, database: database, collectionId: collectionId);
+            Collection? myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant, database: database, collectionId: collectionName);
             if (myCollection != null)
             {
                 chromaDBCollection = new ChromaDBCollection(myCollection, ChromaClient);
@@ -142,15 +141,14 @@ public class ChromaDBClient
        string tenant = "default_tenant",
        string database = "default_database")
     {
-        // Get our vecItem
         Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
             database: database,
             request: new CreateCollectionPayload
             {
                 Name = collectionName,
                 GetOrCreate = true,
-                //Metadata = null,
-                //Configuration = null
+                Metadata = null,
+                Configuration = null
             });
 
         return new ChromaDBCollection(collection, ChromaClient);
@@ -246,7 +244,131 @@ public class ChromaDBClient
 
     #endregion
 
+    #region Record Management
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="ids">if indicated restrict the query to the list of ids</param>
+    /// <param name="include">if indicated specify which related data to include in the query</param>
+    /// <param name="Where">if indicated restrict the query to the specified conditions in metadatas</param>
+    /// <param name="WhereDocument">if indicated restrict the query to the specified conditions in documents</param>
+    /// <param name="limit">if indicated limit the number of results returned</param>
+    /// <param name="offset">if indicated specify the number of results to skip</param>
+    /// <param name="tenant"></param>
+    /// <param name="database"></param>
+    /// <returns></returns>
+    public async Task<List<ChromaDocument>> CollectionGetAsync(string collectionName,
+        List<string>? ids,
+        List<Include>? include,
+        object? Where,
+        object? WhereDocument,
+        int? limit,
+        int? offset,
+        string tenant = "default_tenant",
+        string database = "default_database")
+    {
+        List<ChromaDocument> result = new List<ChromaDocument>();
+
+        // Get our collection
+        Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
+             database: database,
+             request: new CreateCollectionPayload
+             {
+                 Name = collectionName,
+                 GetOrCreate = true,
+                 Metadata = null,
+                 Configuration = null
+             });
+
+        RawWhereFields? rawWhereFields = null;
+
+        if (Where is not null || WhereDocument is not null)
+        {
+            // Handle the Where and WhereDocument conditions here
+            rawWhereFields = new RawWhereFields
+            {
+                Where = Where,
+                WhereDocument = WhereDocument
+            };
+        }
+
+        GetRequestPayloadVariant2 getRequestPayloadVariant2 = new GetRequestPayloadVariant2
+        {
+            Ids = ids,
+            Include = include,
+            Limit = limit,
+            Offset = offset
+        };
+
+        GetRequestPayload requestPayload = new GetRequestPayload
+        {
+            GetRequestPayloadVariant2 = getRequestPayloadVariant2,
+            RawWhereFields = rawWhereFields
+        };
+
+        GetResponse response = await ChromaClient.Record.CollectionGetAsync(tenant: tenant,
+            database: database,
+            collectionId: collection.Id.ToString(),
+            request: requestPayload);
+
+        if (response != null)
+        {
+            QueryResult queryResult = new QueryResult
+            {
+                Ids = response.Ids,
+                //Distances = response.Distances,
+                Embeddings = response.Embeddings,
+                Documents = response.Documents,
+                Metadatas = ConvertMetadatas(response.Metadatas),
+                Uris = response.Uris
+            };
+
+            result = queryResult.ToDocuments();
+
+            foreach (var document in result)
+            {
+                Console.WriteLine($"Document Id: {document.Id}");
+                Console.WriteLine($"Document Content: {document.Text}");
+                Console.WriteLine($"Document Embedding: {string.Join(", ", document.Embeddings ?? new List<float>())}");
+                Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object>())}");
+                Console.WriteLine($"Document Uri: {document.Uri}");
+            }
+        }
+
+        return result;
+    }
+
+    private IList<IDictionary<string, object>> ConvertMetadatas(IList<global::Chroma.OneOf<object, global::Chroma.HashMap>>? Metadatas)
+    {
+        var result = new List<IDictionary<string, object>>();
+
+        if (Metadatas != null)
+        {
+            foreach (var metadata in Metadatas)
+            {
+                var dict = new Dictionary<string, object>();
+
+                metadata.Switch(
+                    obj => { /* Handle object case */ },
+                    hashMap => {
+                        // Handles the HashMap case and adds its properties to the result dictionary
+                        foreach (var kvp in hashMap.AdditionalProperties)
+                        {
+                            dict[kvp.Key] = kvp.Value;
+                        }
+                    }
+                );
+                result.Add(dict);
+            }
+        }
+
+        return result;
+    }
+
+
+    #endregion
 
 
 
@@ -256,11 +378,11 @@ public class ChromaDBClient
     //    string tenant = "default_tenant",
     //    string database = "default_database")
     //{
-    //    // Warning : the parameter "collectionId" is the vecItem name, not the vecItem id.
+    //    // Warning : the parameter "collectionName" is the vecItem name, not the vecItem id.
     //    // The vecItem id is a guid, but the vecItem name is a string.
     //    var collection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant,
     //        database: database,
-    //        collectionId: oldCollectionName);
+    //        collectionName: oldCollectionName);
 
     //    return collection;
     //}

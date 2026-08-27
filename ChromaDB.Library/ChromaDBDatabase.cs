@@ -7,6 +7,12 @@ namespace ChromaDB.Library
 {
     public record ChromaDBDatabase(Guid? Id, string Name, string Tenant, ChromaClient ChromaClient)
     {
+        public async Task<int> CountCollectionsAsync()
+        {
+            var count = await ChromaClient.Collection.CountCollectionsAsync(tenant: Tenant, database: Name);
+            return count;
+        }
+
         public async Task<List<ChromaDBCollection>> ListCollectionsAsync()
         {
             List<ChromaDBCollection> result = new List<ChromaDBCollection>();
