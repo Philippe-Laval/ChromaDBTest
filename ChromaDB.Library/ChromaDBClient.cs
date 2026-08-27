@@ -368,6 +368,100 @@ public class ChromaDBClient
     }
 
 
+
+    /// <summary>
+    /// Given a list of embeddingsPayloadVariant1, finds the documents the nearest to the embeddingsPayloadVariant1 in the collection. 
+    /// The result is a list of documents, one for each embedding in the query.
+    /// </summary>
+    /// <returns></returns>
+    public async Task CollectionQueryAsync(string collectionName,
+        IList<IList<float>> queryEmbeddings,
+        IList<Include>? include,
+        IList<string>? ids,
+        int? nResults,
+        object? Where,
+        object? WhereDocument,
+        int? limit,
+        int? offset,
+        string tenant = "default_tenant",
+        string database = "default_database")
+    {
+        // Get our collection
+        Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
+              database: database,
+              request: new CreateCollectionPayload
+              {
+                  Name = collectionName,
+                  GetOrCreate = true,
+                  Metadata = null,
+                  Configuration = null
+              });
+
+        QueryRequestPayloadVariant2 queryRequestPayloadVariant2 = new QueryRequestPayloadVariant2
+        {
+            QueryEmbeddings = queryEmbeddings,
+            NResults = nResults,
+            Include = include,
+            Ids = ids
+        };
+
+        RawWhereFields? rawWhereFields = null;
+
+        if (Where is not null || WhereDocument is not null)
+        {
+            // Handle the Where and WhereDocument conditions here
+            rawWhereFields = new RawWhereFields
+            {
+                Where = Where,
+                WhereDocument = WhereDocument
+            };
+        }
+
+        QueryRequestPayload queryRequestPayload = new QueryRequestPayload
+        {
+            QueryRequestPayloadVariant2 = queryRequestPayloadVariant2,
+            RawWhereFields = rawWhereFields
+        };
+
+        QueryResponse queryResponse = await ChromaClient.Record.CollectionQueryAsync(tenant: "default_tenant",
+            database: "default_database",
+            collectionId: collection.Id.ToString(),
+            request: queryRequestPayload,
+            limit: limit,
+            offset: offset
+            );
+
+        if (queryResponse != null)
+        {
+            if (queryResponse.Ids != null && queryResponse.Ids.Count > 0)
+            {
+                IList<string>? _ids = queryResponse.Ids[0];
+            }
+
+            if (queryResponse.Documents != null && queryResponse.Documents.Count > 0)
+            {
+                IList<string>? documents = queryResponse.Documents[0];
+            }
+
+            if (queryResponse.Distances != null && queryResponse.Distances.Count > 0)
+            {
+                IList<float>? distances = queryResponse.Distances[0];
+            }
+
+            if (queryResponse.Metadatas != null && queryResponse.Metadatas.Count > 0)
+            {
+                IList<OneOf<object, HashMap>>? metadatas = queryResponse.Metadatas[0];
+            }
+
+            if (queryResponse.Uris != null && queryResponse.Uris.Count > 0)
+            {
+                IList<string>? uris = queryResponse.Uris[0];
+            }
+
+        }
+
+    }
+
     #endregion
 
 

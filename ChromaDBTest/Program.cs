@@ -119,6 +119,11 @@ var include = new List<Include> { Include.Documents,
                     Include.Metadatas,
                     Include.Uris };
 
+/*
+  Include = new List<Include> {
+                    Include.Documents, Include.Distances, Include.Embeddings, Include.Metadatas, Include.Uris
+                }
+ */
 
 
 
