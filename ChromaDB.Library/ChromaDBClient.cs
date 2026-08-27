@@ -23,6 +23,12 @@ public class ChromaDBClient
 
     #region Server Management
 
+    public async Task<string> ResetAsync()
+    {
+        var result = await ChromaClient.System.ResetAsync();
+        return result ?? "Unknown";
+    }
+
     public async Task<string> GetVersionAsync()
     {
         string version = await ChromaClient.System.VersionAsync();
@@ -492,6 +498,8 @@ public class ChromaDBClient
             }
         }
 
+        // For now, Metadatas can not be serialized, so we will not use them for now.
+        // We will use them later when the serialization issue is fixed.
         AddCollectionRecordsPayload addCollectionRecordsPayload = new AddCollectionRecordsPayload
         {
             // required fields
@@ -499,7 +507,7 @@ public class ChromaDBClient
             Embeddings = embeddingsPayload,
             // optional fields
             Documents = documents,
-            Metadatas = metas,
+            Metadatas = null, //metas,
             Uris = uris
         };
 

@@ -3,7 +3,6 @@
 using Chroma;
 using ChromaDB.Library;
 using ChromaDBTest;
-using Microsoft.VisualBasic;
 
 // Make sure you have a ChromaDB server running at http://localhost:8000 before running this program.
 // Tests using the new ChromaClient, which is using the new chroma api v2, so we need to use the v2 endpoint for testing.
@@ -24,6 +23,33 @@ Console.WriteLine($"MaxBatchSize: {preFlightChecks.MaxBatchSize}");
 Console.WriteLine($"SupportsBase64Encoding: {preFlightChecks.SupportsBase64Encoding}");
 Console.WriteLine($"AdditionalProperties: {preFlightChecks.AdditionalProperties}");
 
+/*
+ * In order to reset the ChromaDB server, 
+ * you need to set the "allow_reset" option to true in the ChromaDB configuration file (config.yaml).
+ 
+########################
+# HTTP server settings #
+########################
+port: 8000
+listen_address: "0.0.0.0"
+max_payload_size_bytes: 41943040
+cors_allow_origins: ["*"]
+
+####################
+# General settings #
+####################
+persist_path: "./chroma"
+allow_reset: true # defaults to false
+sqlitedb:
+  hash_type: "md5" # or "sha256"
+  migration_mode: "apply" # or "validate"
+sysdb:
+  sqlite:
+    log_topic_namespace: "default"
+    log_tenant: "default" 
+ */
+
+await chromaDBClient.ResetAsync();
 
 
 var databases = await chromaDBClient.ListDatabasesAsync();
