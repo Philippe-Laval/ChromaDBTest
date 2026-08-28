@@ -12,7 +12,7 @@ namespace ChromaDB.Library;
 public class ChromaDBWhereFilter
 {
     private readonly Dictionary<string, object> _filter = new Dictionary<string, object>();
-    private bool _combineWithOr = false; // Flag to indicate OR combination
+    private bool _combineWithOr; // Flag to indicate OR combination
 
     // Internal accessor for the converter
     internal bool CombineWithOr => _combineWithOr;
@@ -32,6 +32,12 @@ public class ChromaDBWhereFilter
     public ChromaDBWhereFilter Or()
     {
         _combineWithOr = true;
+        return this;
+    }
+
+    public ChromaDBWhereFilter And()
+    {
+        _combineWithOr = false;
         return this;
     }
 
@@ -57,7 +63,7 @@ public class ChromaDBWhereFilter
     {
         // Ensure values is materialized if it's a deferred execution LINQ query
         var valueList = values.ToList();
-        if (!valueList.Any())
+        if (valueList.Count == 0)
         {
             throw new ArgumentException("IN operator requires a non-empty list of values.", nameof(values));
         }
@@ -78,7 +84,7 @@ public class ChromaDBWhereFilter
     {
         // Ensure values is materialized if it's a deferred execution LINQ query
         var valueList = values.ToList();
-        if (!valueList.Any())
+        if (valueList.Count == 0)
         {
             throw new ArgumentException("NIN operator requires a non-empty list of values.", nameof(values));
         }
@@ -179,5 +185,5 @@ public class ChromaDBWhereFilter
     /// <summary>
     /// Implicitly converts a ChromaDBWhereFilter to a Dictionary
     /// </summary>
-    public static implicit operator Dictionary<string, object>(ChromaDBWhereFilter filter) => filter.ToDictionary();
+    public static implicit operator Dictionary<string, object>(ChromaDBWhereFilter filter) => filter?.ToDictionary() ?? new Dictionary<string, object>();
 }

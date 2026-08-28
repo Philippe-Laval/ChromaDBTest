@@ -56,7 +56,7 @@ namespace ChromaDB.Library;
 public class ChromaDBWhereDocumentFilter
 {
     private readonly Dictionary<string, object> _filter = new Dictionary<string, object>();
-    private bool _combineWithOr = false; // Flag to indicate OR combination
+    private bool _combineWithOr; // Flag to indicate OR combination
 
     // Internal accessor for the converter
     internal bool CombineWithOr => _combineWithOr;
