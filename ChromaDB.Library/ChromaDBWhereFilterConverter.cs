@@ -13,21 +13,28 @@ namespace ChromaDB.Library;
 /// ensuring the output JSON matches the structure expected by the Rust backend's
 /// metadata filtering logic (related to MetadataValue, MetadataComparison, Where enums).
 /// </summary>
-public class WhereFilterConverter : JsonConverter<WhereFilter>
+public class ChromaDBWhereFilterConverter : JsonConverter<ChromaDBWhereFilter>
 {
     // Define known ChromaDB filter operators
     private static readonly HashSet<string> LogicalOperators = new HashSet<string> { "$and", "$or" };
     private static readonly HashSet<string> ComparisonOperators = new HashSet<string> { "$eq", "$ne", "$gt", "$gte", "$lt", "$lte" };
     private static readonly HashSet<string> SetOperators = new HashSet<string> { "$in", "$nin" };
 
-    public override WhereFilter Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override ChromaDBWhereFilter Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // Deserialization is not implemented as filters are typically constructed in code
-        throw new NotImplementedException("Deserialization of WhereFilter is not implemented.");
+        throw new NotImplementedException("Deserialization of ChromaDBWhereFilter is not implemented.");
     }
 
-    public override void Write(Utf8JsonWriter writer, WhereFilter value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, ChromaDBWhereFilter value, JsonSerializerOptions options)
     {
+        if (value is null)
+        {
+            writer.WriteStartObject();
+            writer.WriteEndObject();
+            return;
+        }
+
         var filterDict = value.FilterDictionary;
         var combineWithOr = value.CombineWithOr;
 

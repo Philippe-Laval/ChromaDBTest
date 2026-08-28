@@ -313,7 +313,7 @@ public class ChromaDBClient
         {
             GetRequestPayloadVariant2 = getRequestPayloadVariant2,
             RawWhereFields = rawWhereFields
-        };
+        }; 
 
         GetResponse response = await ChromaClient.Record.CollectionGetAsync(tenant: tenant,
             database: database,
@@ -333,15 +333,6 @@ public class ChromaDBClient
             };
 
             result = queryResult.ToDocuments();
-
-            foreach (var document in result)
-            {
-                Console.WriteLine($"Document Id: {document.Id}");
-                Console.WriteLine($"Document Content: {document.Text}");
-                Console.WriteLine($"Document Embedding: {string.Join(", ", document.Embeddings ?? new List<float>())}");
-                Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object>())}");
-                Console.WriteLine($"Document Uri: {document.Uri}");
-            }
         }
 
         return result;

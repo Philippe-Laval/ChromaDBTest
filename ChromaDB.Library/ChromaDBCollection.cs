@@ -14,7 +14,7 @@ namespace ChromaDB.Library
 
         private static readonly JsonSerializerOptions WhereFilterSerializerOptions = new JsonSerializerOptions
         {
-            Converters = { new WhereFilterConverter() }
+            Converters = { new ChromaDBWhereFilterConverter() }
         };
 
         public string Name => _collection.Name;

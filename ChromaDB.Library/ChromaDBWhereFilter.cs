@@ -8,8 +8,8 @@ namespace ChromaDB.Library;
 /// <summary>
 /// A builder class for filters in ChromaDB
 /// </summary>
-[JsonConverter(typeof(WhereFilterConverter))]
-public class WhereFilter
+[JsonConverter(typeof(ChromaDBWhereFilterConverter))]
+public class ChromaDBWhereFilter
 {
     private readonly Dictionary<string, object> _filter = new Dictionary<string, object>();
     private bool _combineWithOr = false; // Flag to indicate OR combination
@@ -21,15 +21,15 @@ public class WhereFilter
     /// <summary>
     /// Creates a new filter
     /// </summary>
-    public WhereFilter() { }
+    public ChromaDBWhereFilter() { }
 
     /// <summary>
     /// Specifies that the conditions added to this filter instance should be combined using OR logic.
     /// If not called, conditions are combined using AND logic (default).
-    /// Note: This applies only when multiple conditions are added directly to this WhereFilter instance.
+    /// Note: This applies only when multiple conditions are added directly to this ChromaDBWhereFilter instance.
     /// </summary>
-    /// <returns>The current WhereFilter instance for chaining.</returns>
-    public WhereFilter Or()
+    /// <returns>The current ChromaDBWhereFilter instance for chaining.</returns>
+    public ChromaDBWhereFilter Or()
     {
         _combineWithOr = true;
         return this;
@@ -41,7 +41,7 @@ public class WhereFilter
     /// <param name="field">Field name</param>
     /// <param name="value">Value to match</param>
     /// <returns>This filter instance for chaining</returns>
-    public WhereFilter Equals(string field, object value)
+    public ChromaDBWhereFilter Equals(string field, object value)
     {
         _filter[field] = value;
         return this;
@@ -53,7 +53,7 @@ public class WhereFilter
     /// <param name="field">Field name</param>
     /// <param name="values">Values to match</param>
     /// <returns>This filter instance for chaining</returns>
-    public WhereFilter In(string field, IEnumerable<object> values)
+    public ChromaDBWhereFilter In(string field, IEnumerable<object> values)
     {
         // Ensure values is materialized if it's a deferred execution LINQ query
         var valueList = values.ToList();
@@ -74,7 +74,7 @@ public class WhereFilter
     /// <param name="field">Field name</param>
     /// <param name="values">Values to exclude</param>
     /// <returns>This filter instance for chaining</returns>
-    public WhereFilter NotIn(string field, IEnumerable<object> values)
+    public ChromaDBWhereFilter NotIn(string field, IEnumerable<object> values)
     {
         // Ensure values is materialized if it's a deferred execution LINQ query
         var valueList = values.ToList();
@@ -95,7 +95,7 @@ public class WhereFilter
     /// <param name="field">Field name</param>
     /// <param name="value">Value to compare against</param>
     /// <returns>This filter instance for chaining</returns>
-    public WhereFilter GreaterThan(string field, object value)
+    public ChromaDBWhereFilter GreaterThan(string field, object value)
     {
         _filter[field] = new Dictionary<string, object>
         {
@@ -110,7 +110,7 @@ public class WhereFilter
     /// <param name="field">Field name</param>
     /// <param name="value">Value to compare against</param>
     /// <returns>This filter instance for chaining</returns>
-    public WhereFilter GreaterThanOrEqual(string field, object value)
+    public ChromaDBWhereFilter GreaterThanOrEqual(string field, object value)
     {
         _filter[field] = new Dictionary<string, object>
         {
@@ -125,7 +125,7 @@ public class WhereFilter
     /// <param name="field">Field name</param>
     /// <param name="value">Value to compare against</param>
     /// <returns>This filter instance for chaining</returns>
-    public WhereFilter LessThan(string field, object value)
+    public ChromaDBWhereFilter LessThan(string field, object value)
     {
         _filter[field] = new Dictionary<string, object>
         {
@@ -140,7 +140,7 @@ public class WhereFilter
     /// <param name="field">Field name</param>
     /// <param name="value">Value to compare against</param>
     /// <returns>This filter instance for chaining</returns>
-    public WhereFilter LessThanOrEqual(string field, object value)
+    public ChromaDBWhereFilter LessThanOrEqual(string field, object value)
     {
         _filter[field] = new Dictionary<string, object>
         {
@@ -154,7 +154,7 @@ public class WhereFilter
     /// </summary>
     /// <param name="filters">The filters to combine</param>
     /// <returns>A new filter representing the AND combination</returns>
-    public WhereFilter And(params WhereFilter[] filters)
+    public ChromaDBWhereFilter And(params ChromaDBWhereFilter[] filters)
     {
         _filter["$and"] = filters.Select(f => f.ToDictionary()).ToList();
         return this;
@@ -165,7 +165,7 @@ public class WhereFilter
     /// </summary>
     /// <param name="filters">The filters to combine</param>
     /// <returns>A new filter representing the OR combination</returns>
-    public WhereFilter Or(params WhereFilter[] filters)
+    public ChromaDBWhereFilter Or(params ChromaDBWhereFilter[] filters)
     {
         _filter["$or"] = filters.Select(f => f.ToDictionary()).ToList();
         return this;
@@ -177,7 +177,7 @@ public class WhereFilter
     public Dictionary<string, object> ToDictionary() => new Dictionary<string, object>(_filter);
 
     /// <summary>
-    /// Implicitly converts a WhereFilter to a Dictionary
+    /// Implicitly converts a ChromaDBWhereFilter to a Dictionary
     /// </summary>
-    public static implicit operator Dictionary<string, object>(WhereFilter filter) => filter.ToDictionary();
+    public static implicit operator Dictionary<string, object>(ChromaDBWhereFilter filter) => filter.ToDictionary();
 }

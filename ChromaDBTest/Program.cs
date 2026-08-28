@@ -3,6 +3,7 @@
 using Chroma;
 using ChromaDB.Library;
 using ChromaDBTest;
+using System.Text.Json;
 
 // Make sure you have a ChromaDB server running at http://localhost:8000 before running this program.
 // Tests using the new ChromaClient, which is using the new chroma api v2, so we need to use the v2 endpoint for testing.
@@ -139,6 +140,9 @@ if (database2 != null)
 }
 
 var ids = new List<string> { "id1", "id2" };
+
+
+// Include all fields in the result, but you can choose to include only the fields you need.
 var include = new List<Include> { Include.Documents,
                     Include.Embeddings,
                     Include.Distances,
@@ -216,12 +220,29 @@ await chromaDBClient.CollectionUpsertAsync("collection10",
     "database1", "default_tenant");
 
 
-/*
-  Include = new List<Include> {
-                    Include.Documents, Include.Distances, Include.Embeddings, Include.Metadatas, Include.Uris
-                }
- */
 
+// CollectionGetAsync with a where filter to get documents with category "Botanic books" and page greater than 10.
+
+WhereFilter whereFilter = new WhereFilter()
+    .Equals("category", "Botanic books")
+    .GreaterThan("page", 10);
+
+// {"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}
+var whereAsJson = JsonSerializer.Serialize(whereFilter);
+
+// No restriction on ids, so we can pass null for the ids parameter.
+var result = await chromaDBClient.CollectionGetAsync("collection10", 
+    null, include, whereFilter, null, 10, 0,
+    "database1", "default_tenant");
+
+foreach (var document in result)
+{
+    Console.WriteLine($"Document Id: {document.Id}");
+    Console.WriteLine($"Document Content: {document.Text}");
+    Console.WriteLine($"Document Embedding: {string.Join(", ", document.Embeddings ?? new List<float>())}");
+    Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object>())}");
+    Console.WriteLine($"Document Uri: {document.Uri}");
+}
 
 
 
