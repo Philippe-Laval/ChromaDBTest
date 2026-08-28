@@ -234,10 +234,14 @@ Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 // all records whose document contains a search string
 ChromaDBWhereDocumentFilter whereDocumentFilter1 = new ChromaDBWhereDocumentFilter()
     .Contains("search string");
+var whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentFilter1);
+Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
 // records whose documents match the regex pattern for an email address
 ChromaDBWhereDocumentFilter whereDocumentFilter2 = new ChromaDBWhereDocumentFilter()
     .Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentFilter2);
+Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
 // An $and operator will return results that match all the filters in the list
 ChromaDBWhereDocumentFilter whereDocumentFilter3 = new ChromaDBWhereDocumentFilter()
@@ -245,6 +249,8 @@ ChromaDBWhereDocumentFilter whereDocumentFilter3 = new ChromaDBWhereDocumentFilt
         new ChromaDBWhereDocumentFilter().Contains("search_string_1"),
         new ChromaDBWhereDocumentFilter().Regex("[a-z]+")
     );
+whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentFilter3);
+Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
 // An $or operator will return results that match any of the filters in the list
 ChromaDBWhereDocumentFilter whereDocumentFilter4 = new ChromaDBWhereDocumentFilter()
@@ -252,6 +258,23 @@ ChromaDBWhereDocumentFilter whereDocumentFilter4 = new ChromaDBWhereDocumentFilt
         new ChromaDBWhereDocumentFilter().Contains("search_string_1"), 
         new ChromaDBWhereDocumentFilter().NotContains("search_string_2")
     );
+whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentFilter4);
+Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
+
+ChromaDBWhereDocumentFilter whereDocumentFilter5 = new ChromaDBWhereDocumentFilter()
+    .Contains("search_string_1")
+    .Or()
+    .NotContains("search_string_2");
+whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentFilter5);
+Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
+
+ChromaDBWhereDocumentFilter whereDocumentFilter6= new ChromaDBWhereDocumentFilter()
+    .Contains("search_string_1")
+    .And()
+    .Regex("[a-z]+");
+whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentFilter6);
+Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
+
 
 // No restriction on ids, so we can pass null for the ids parameter.
 // BUG : for now the include paramter are not sent to the server nor the paging parameters :

@@ -1,0 +1,153 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace ChromaDB.Library;
+
+public class ChromaDBWhereDocumentFilterConverter : JsonConverter<ChromaDBWhereDocumentFilter>
+{
+    // Define known ChromaDB filter operators
+    private static readonly HashSet<string> LogicalOperators = new HashSet<string> { "$and", "$or" };
+
+    public override ChromaDBWhereDocumentFilter Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        // Deserialization is not implemented as filters are typically constructed in code
+        throw new NotImplementedException("Deserialization of ChromaDBWhereDocumentFilter is not implemented.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, ChromaDBWhereDocumentFilter value, JsonSerializerOptions options)
+    {
+        if (value is null)
+        {
+            // "{}" represents an empty filter, which matches all documents
+            writer.WriteStartObject();
+            writer.WriteEndObject();
+            return;
+        }
+
+        var filterDict = value.FilterDictionary;
+        var combineWithOr = value.CombineWithOr;
+
+        if (filterDict.Count == 0)
+        {
+            // "{}" represents an empty filter, which matches all documents
+            writer.WriteStartObject();
+            writer.WriteEndObject();
+            return;
+        }
+
+        // Handle explicitly provided $and or $or keys first
+        if (filterDict.Count > 1)
+        {
+            // Multiple filter conditions need to be wrapped with $and or $or
+            string logicalOperator = combineWithOr ? "$or" : "$and";
+
+            // "{"
+            writer.WriteStartObject();
+            // "$and" or "$or"
+            writer.WritePropertyName(logicalOperator);
+            // "["
+            writer.WriteStartArray();
+
+            foreach (var kvp in filterDict)
+            {
+                // Each condition becomes its own object within the array
+
+                // "{"
+                writer.WriteStartObject();
+                // "$contains", "$not_contains", "$regex", "$not_regex"
+                writer.WritePropertyName(kvp.Key);
+                // Write the value, which could be a primitive or an operator object
+                WriteValue(writer, kvp.Value, options);
+                // "}"
+                writer.WriteEndObject();
+            }
+
+            // "]"
+            writer.WriteEndArray();
+            // "}"
+            writer.WriteEndObject();
+            return;
+        }
+
+        // Handle single filter condition or explicitly provided $and/$or with no other filters
+        writer.WriteStartObject();
+        foreach (var kvp in filterDict)
+        {
+            writer.WritePropertyName(kvp.Key);
+            if (LogicalOperators.Contains(kvp.Key))
+            {
+                // Explicitly handle $and/$or arrays
+                JsonSerializer.Serialize(writer, kvp.Value, options);
+            }
+            else
+            {
+                // Write field value (implicit equality or explicit operator)
+                WriteValue(writer, kvp.Value, options);
+            }
+        }
+        writer.WriteEndObject();
+    }
+
+    private void WriteValue(Utf8JsonWriter writer, object value, JsonSerializerOptions options)
+    {
+        // Write primitive value directly (for implicit equality)
+        WritePrimitiveValue(writer, value);
+    }
+
+    private void WritePrimitiveValue(Utf8JsonWriter writer, object value)
+    {
+        // Ensure the value is one of the types compatible with Rust's MetadataValue
+        if (value == null)
+        {
+            writer.WriteNullValue();
+        }
+        else if (value is string s)
+        {
+            writer.WriteStringValue(s);
+        }
+        else if (value is bool b)
+        {
+            writer.WriteBooleanValue(b);
+        }
+        else if (value is int i)
+        {
+            writer.WriteNumberValue(i);
+        }
+        else if (value is long l)
+        {
+            writer.WriteNumberValue(l);
+        }
+        else if (value is float f)
+        {
+            writer.WriteNumberValue(f);
+        }
+        else if (value is double d)
+        {
+            writer.WriteNumberValue(d);
+        }
+        else if (value is decimal dec)
+        {
+            writer.WriteNumberValue(dec);
+        }
+        else if (value is DateTime dt)
+        {
+            writer.WriteStringValue(dt.ToString("o"));
+        }
+        else if (value is DateTimeOffset dto)
+        {
+            writer.WriteStringValue(dto.ToString("o"));
+        }
+        else if (value is Guid g)
+        {
+            writer.WriteStringValue(g.ToString());
+        }
+        else
+        {
+            throw new JsonException($"Unsupported type '{value.GetType().Name}' found in where filter. Only bool, numeric types, string, or arrays for $in/$nin are supported.");
+        }
+    }
+}
