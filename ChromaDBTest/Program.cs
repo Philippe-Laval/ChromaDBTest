@@ -231,6 +231,28 @@ WhereFilter whereFilter = new WhereFilter()
 var whereAsJson = JsonSerializer.Serialize(whereFilter);
 Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
+// all records whose document contains a search string
+ChromaDBWhereDocumentFilter whereDocumentFilter1 = new ChromaDBWhereDocumentFilter()
+    .Contains("search string");
+
+// records whose documents match the regex pattern for an email address
+ChromaDBWhereDocumentFilter whereDocumentFilter2 = new ChromaDBWhereDocumentFilter()
+    .Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+
+// An $and operator will return results that match all the filters in the list
+ChromaDBWhereDocumentFilter whereDocumentFilter3 = new ChromaDBWhereDocumentFilter()
+    .And(
+        new ChromaDBWhereDocumentFilter().Contains("search_string_1"),
+        new ChromaDBWhereDocumentFilter().Regex("[a-z]+")
+    );
+
+// An $or operator will return results that match any of the filters in the list
+ChromaDBWhereDocumentFilter whereDocumentFilter4 = new ChromaDBWhereDocumentFilter()
+    .Or(
+        new ChromaDBWhereDocumentFilter().Contains("search_string_1"), 
+        new ChromaDBWhereDocumentFilter().NotContains("search_string_2")
+    );
+
 // No restriction on ids, so we can pass null for the ids parameter.
 // BUG : for now the include paramter are not sent to the server nor the paging parameters :
 // {"where":{"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}}
