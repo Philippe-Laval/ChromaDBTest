@@ -43,7 +43,6 @@ namespace ChromaDBTest
             await client.System.ResetAsync();
         }
 
-
         public static async Task TestCreationOfDatabase(ChromaClient? client = null)
         {
             client ??= CreateClient();

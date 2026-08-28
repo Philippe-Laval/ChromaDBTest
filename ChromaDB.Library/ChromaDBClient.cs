@@ -120,6 +120,13 @@ public class ChromaDBClient
 
     #region Collection Management
 
+    /// <summary>
+    /// Get a collection by its name. Returns null if the collection does not exist.
+    /// </summary>
+    /// <param name="collectionName">The name of the collection to retrieve.</param>
+    /// <param name="database">The name of the database containing the collection.</param>
+    /// <param name="tenant">The tenant name.</param>
+    /// <returns>The collection if found; otherwise, null.</returns>
     public async Task<ChromaDBCollection?> GetCollectionAsync(string collectionName,
         string database = "default_database",
         string tenant = "default_tenant")
@@ -145,6 +152,13 @@ public class ChromaDBClient
         return chromaDBCollection;
     }
 
+    /// <summary>
+    /// Get or create a collection by its name. If the collection does not exist, it will be created.
+    /// </summary>
+    /// <param name="collectionName">The name of the collection to retrieve or create.</param>
+    /// <param name="database">The name of the database containing the collection.</param>
+    /// <param name="tenant">The tenant name.</param>
+    /// <returns>The collection if found or created.</returns>
     public async Task<ChromaDBCollection> GetOrCreateCollection(string collectionName,
         string database = "default_database",
         string tenant = "default_tenant")
@@ -162,6 +176,12 @@ public class ChromaDBClient
         return new ChromaDBCollection(collection, ChromaClient);
     }
 
+    /// <summary>
+    /// List all collections in a given database for a specific tenant.
+    /// </summary>
+    /// <param name="databaseName">The name of the database containing the collections.</param>
+    /// <param name="tenant">The name of the tenant containing the database.</param>
+    /// <returns>A list of collections in the specified database for the given tenant.</returns>
     public async Task<List<ChromaDBCollection>> ListCollectionsAsync(string databaseName,
         string tenant = "default_tenant")
     {
@@ -195,9 +215,12 @@ public class ChromaDBClient
     }
 
     /// <summary>
-    /// Delete a collection
+    /// Delete a collection by its name.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="collectionName">The name of the collection to delete.</param>
+    /// <param name="database">The name of the database containing the collection.</param>
+    /// <param name="tenant">The name of the tenant containing the database.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task DeleteCollectionAsync(string collectionName,
         string database = "default_database",
         string tenant = "default_tenant")
@@ -223,13 +246,13 @@ public class ChromaDBClient
     }
 
     /// <summary>
-    /// Changes the collection name
+    /// Changes the collection name.
     /// </summary>
-    /// <param name="oldCollectionName"></param>
-    /// <param name="newCollectionName"></param>
-    /// <param name="tenant"></param>
-    /// <param name="database"></param>
-    /// <returns></returns>
+    /// <param name="oldCollectionName">The current name of the collection.</param>
+    /// <param name="newCollectionName">The new name for the collection.</param>
+    /// <param name="tenant">The name of the tenant containing the database.</param>
+    /// <param name="database">The name of the database containing the collection.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task UpdateCollectionAsync(string oldCollectionName, string newCollectionName,
         string database = "default_database",
         string tenant = "default_tenant")
@@ -255,18 +278,18 @@ public class ChromaDBClient
     #region Record Management
 
     /// <summary>
-    /// 
+    /// Get records from a collection based on various parameters such as ids, include, where conditions, limit, and offset.
     /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="ids">if indicated restrict the query to the list of ids</param>
-    /// <param name="include">if indicated specify which related data to include in the query</param>
-    /// <param name="Where">if indicated restrict the query to the specified conditions in metadatas</param>
-    /// <param name="WhereDocument">if indicated restrict the query to the specified conditions in documents</param>
-    /// <param name="limit">if indicated limit the number of results returned</param>
-    /// <param name="offset">if indicated specify the number of results to skip</param>
-    /// <param name="tenant"></param>
-    /// <param name="database"></param>
-    /// <returns></returns>
+    /// <param name="collectionName">The name of the collection to query.</param>
+    /// <param name="ids">If indicated, restrict the query to the list of ids.</param>
+    /// <param name="include">If indicated, specify which related data to include in the query.</param>
+    /// <param name="Where">If indicated, restrict the query to the specified conditions in metadatas.</param>
+    /// <param name="WhereDocument">If indicated, restrict the query to the specified conditions in documents.</param>
+    /// <param name="limit">If indicated, limit the number of results returned.</param>
+    /// <param name="offset">If indicated, specify the number of results to skip.</param>
+    /// <param name="tenant">The name of the tenant containing the database.</param>
+    /// <param name="database">The name of the database containing the collection.</param>
+    /// <returns>A list of ChromaDocument objects matching the query parameters.</returns>
     public async Task<List<ChromaDocument>> CollectionGetAsync(string collectionName,
         List<string>? ids,
         List<Include>? include,
@@ -339,6 +362,13 @@ public class ChromaDBClient
         return result;
     }
 
+    /// <summary>
+    /// Converts a collection of Chroma metadata items into a list of dictionaries with string keys and object values.
+    /// </summary>
+    /// <param name="Metadatas">The collection of metadata items to convert, where each item can be either a plain object or a HashMap. Can be
+    /// null.</param>
+    /// <returns>A list of dictionaries containing the converted metadata. Returns an empty list if <paramref name="Metadatas"/>
+    /// is null.</returns>
     private IList<IDictionary<string, object>> ConvertMetadatas(IList<global::Chroma.OneOf<object, global::Chroma.HashMap>>? Metadatas)
     {
         var result = new List<IDictionary<string, object>>();
@@ -396,6 +426,8 @@ public class ChromaDBClient
     /// objects become <see cref="Dictionary{TKey, TValue}"/>, arrays become <see cref="List{T}"/>,
     /// and primitives become their matching CLR types.
     /// </summary>
+    /// <param name="element">The <see cref="JsonElement"/> to convert.</param>
+    /// <returns>The closest .NET representation of the <paramref name="element"/>.</returns>
     private static object? ConvertJsonElement(JsonElement element)
     {
         switch (element.ValueKind)
@@ -441,7 +473,18 @@ public class ChromaDBClient
     /// Given a list of query embeddings, finds the documents nearest to them in the collection.
     /// The result is a list of documents, one for each embedding in the query.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="collectionName">The name of the collection to query.</param>
+    /// <param name="queryEmbeddings">A list of query embeddings to find the nearest documents for.</param>
+    /// <param name="include">Specifies which related data to include in the query.</param>
+    /// <param name="ids">If indicated, restrict the query to the list of ids.</param>
+    /// <param name="nResults">The number of nearest results to return for each query embedding.</param>
+    /// <param name="Where">If indicated, restrict the query to the specified conditions in metadatas.</param>
+    /// <param name="WhereDocument">If indicated, restrict the query to the specified conditions in documents.</param>
+    /// <param name="limit">If indicated, limit the number of results returned.</param>
+    /// <param name="offset">If indicated, specify the number of results to skip.</param>
+    /// <param name="database">The name of the database containing the collection.</param>
+    /// <param name="tenant">The name of the tenant containing the database.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task CollectionQueryAsync(string collectionName,
         IList<IList<float>> queryEmbeddings,
         IList<Include>? include,
@@ -530,7 +573,19 @@ public class ChromaDBClient
 
     }
 
-
+    /// <summary>
+    /// Adds records with embeddings and optional metadata to a Chroma collection, 
+    /// creating the collection if it doesn't exist.
+    /// </summary>
+    /// <param name="collectionName">Name of the collection to add records to.</param>
+    /// <param name="ids">List of unique identifiers for the records.</param>
+    /// <param name="embeddings">List of embedding vectors for each record.</param>
+    /// <param name="documents">Optional list of document contents.</param>
+    /// <param name="uris">Optional list of URIs associated with the records.</param>
+    /// <param name="metadatas">Optional list of metadata dictionaries for each record.</param>
+    /// <param name="database">Database name. Defaults to "default_database".</param>
+    /// <param name="tenant">Tenant name. Defaults to "default_tenant".</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task CollectionAddAsync(string collectionName,
         IList<string> ids,
         IList<IList<float>> embeddings,
@@ -593,6 +648,19 @@ public class ChromaDBClient
             request: addCollectionRecordsPayload);
     }
 
+    /// <summary>
+    /// Upserts records with embeddings and optional metadata to a Chroma collection, 
+    /// creating the collection if it doesn't
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="ids"></param>
+    /// <param name="embeddings"></param>
+    /// <param name="documents"></param>
+    /// <param name="uris"></param>
+    /// <param name="metadatas"></param>
+    /// <param name="database"></param>
+    /// <param name="tenant"></param>
+    /// <returns></returns>
     public async Task CollectionUpsertAsync(string collectionName,
         IList<string> ids,
         IList<IList<float>> embeddings,
@@ -656,24 +724,6 @@ public class ChromaDBClient
     }
 
     #endregion
-
-
-
-
-
-    //public async Task<Collection> GetCollectionAsync(string oldCollectionName, 
-    //    string tenant = "default_tenant",
-    //    string database = "default_database")
-    //{
-    //    // Warning : the parameter "collectionName" is the vecItem name, not the vecItem id.
-    //    // The vecItem id is a guid, but the vecItem name is a string.
-    //    var collection = await ChromaClient.Collection.GetCollectionAsync(tenant: tenant,
-    //        database: database,
-    //        collectionName: oldCollectionName);
-
-    //    return collection;
-    //}
-
 
 }
 
