@@ -800,6 +800,66 @@ public class ChromaDBClient
            request: updatePayload);
     }
 
+    /// <summary>
+    /// deleting items from a collection by id
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="ids"></param>
+    /// <param name="limit"></param>
+    /// <param name="database"></param>
+    /// <param name="tenant"></param>
+    /// <returns></returns>
+    public async Task CollectionDeleteAsync(string collectionName,
+        IList<string> ids,
+        int? limit,
+        string database = "default_database",
+        string tenant = "default_tenant")
+    {
+
+        DeleteCollectionRecordsPayloadVariant2 payloadVariant2 = new DeleteCollectionRecordsPayloadVariant2
+        {
+            Ids = ids,
+            Limit = limit
+        };
+
+        await ChromaClient.Record.CollectionDeleteAsync(tenant: tenant,
+            database: database,
+            collectionId: collectionName,
+            request: new DeleteCollectionRecordsPayload
+            {
+                DeleteCollectionRecordsPayloadVariant2 = payloadVariant2,
+                RawWhereFields = null
+            });
+    }
+
+    /// <summary>
+    /// delete all items in the collection that match the where filter.
+    /// </summary>
+    /// <param name="collectionName"></param>
+    /// <param name="whereFilter"></param>
+    /// <param name="database"></param>
+    /// <param name="tenant"></param>
+    /// <returns></returns>
+    public async Task CollectionDeleteAsync(string collectionName,
+        WhereFilter whereFilter,
+        string database = "default_database",
+        string tenant = "default_tenant")
+    {
+        RawWhereFields rawWhereFields = new RawWhereFields
+        {
+            Where = whereFilter,
+            WhereDocument = null
+        };
+
+        await ChromaClient.Record.CollectionDeleteAsync(tenant: tenant,
+            database: database,
+            collectionId: collectionName,
+            request: new DeleteCollectionRecordsPayload
+            {
+                DeleteCollectionRecordsPayloadVariant2 = null,
+                RawWhereFields = rawWhereFields
+            });
+    }
     #endregion
 
 }
