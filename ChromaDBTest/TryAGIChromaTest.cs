@@ -40,7 +40,7 @@ namespace ChromaDBTest
 
             Console.WriteLine("Resetting the server...");
 
-            //await client.Tenant.ResetAsync();
+            await client.System.ResetAsync();
         }
 
 

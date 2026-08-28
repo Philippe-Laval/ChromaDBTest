@@ -503,8 +503,6 @@ public class ChromaDBClient
             }
         }
 
-        // For now, Metadatas can not be serialized, so we will not use them for now.
-        // We will use them later when the serialization issue is fixed.
         AddCollectionRecordsPayload addCollectionRecordsPayload = new AddCollectionRecordsPayload
         {
             // required fields
@@ -532,6 +530,68 @@ public class ChromaDBClient
             database: database,
             collectionId: collection.Id.ToString(),
             request: addCollectionRecordsPayload);
+    }
+
+    public async Task CollectionUpsertAsync(string collectionName,
+        IList<string> ids,
+        IList<IList<float>> embeddings,
+        IList<string>? documents,
+        IList<string>? uris,
+        IList<IDictionary<string, object>>? metadatas,
+        string database = "default_database",
+        string tenant = "default_tenant")
+    {
+        var embeddingsPayload = new EmbeddingsPayload
+        {
+            EmbeddingsPayloadVariant1 = embeddings,
+            EmbeddingsPayloadVariant2 = null
+        };
+
+        List<OneOf<object, global::Chroma.HashMap>>? metas = null;
+
+        if (metadatas is not null)
+        {
+            metas = new List<OneOf<object, global::Chroma.HashMap>>();
+
+            foreach (var metadata in metadatas)
+            {
+                HashMap hashMap = new HashMap
+                {
+                    AdditionalProperties = metadata
+                };
+
+                OneOf<object, HashMap> oneOf = new Chroma.OneOf<object, HashMap>(null, hashMap);
+                metas.Add(oneOf);
+            }
+        }
+
+        var upsertPayload = new UpsertCollectionRecordsPayload
+        {
+            // required fields
+            Ids = ids,
+            Embeddings = embeddingsPayload,
+            // optional fields
+            Documents = documents,
+            Metadatas = metas,
+            Uris = uris
+        };
+
+        // Get our collection
+        Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
+              database: database,
+              request: new CreateCollectionPayload
+              {
+                  Name = collectionName,
+                  GetOrCreate = true,
+                  Metadata = null,
+                  Configuration = null
+              });
+
+        // Upsert records to the collection
+        await ChromaClient.Record.CollectionUpsertAsync(tenant: tenant,
+            database: database,
+            collectionId: collection.Id.ToString(),
+            request: upsertPayload);
     }
 
     #endregion

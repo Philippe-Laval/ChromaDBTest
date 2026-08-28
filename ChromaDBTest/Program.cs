@@ -187,6 +187,35 @@ await chromaDBClient.CollectionAddAsync("collection10",
     "database1", "default_tenant");
 
 
+
+// Changes to the existing collection, so we need to use the upsert method instead of add.
+documents = new List<string> { "This book is about lemons", "This book is about mangos" };
+uris = new List<string> { "http://localhost/document1", "http://localhost/document2" };
+meta1 = new Dictionary<string, object>
+{
+    { "page", 5 },
+    { "category", "Botanic books" },
+    { "book", "All about lemons" }
+};
+
+meta2 = new Dictionary<string, object>
+{
+    { "page", 15 },
+    { "category", "Botanic books" },
+    { "book", "All about mangos" }
+};
+
+metadatas = new List<IDictionary<string, object>>
+{
+    meta1,
+    meta2
+};
+
+await chromaDBClient.CollectionUpsertAsync("collection10",
+    ids, embeddings, documents, uris, metadatas,
+    "database1", "default_tenant");
+
+
 /*
   Include = new List<Include> {
                     Include.Documents, Include.Distances, Include.Embeddings, Include.Metadatas, Include.Uris
