@@ -641,7 +641,7 @@ public class ChromaDBClient
                   Configuration = null
               });
 
-        // Add records to the collection
+        // Add records in the collection
         var response = await ChromaClient.Record.CollectionAddAsync(tenant: tenant,
             database: database,
             collectionId: collection.Id.ToString(),
@@ -652,13 +652,13 @@ public class ChromaDBClient
     /// Upserts records with embeddings and optional metadata to a Chroma collection, 
     /// creating the collection if it doesn't
     /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="ids"></param>
-    /// <param name="embeddings"></param>
-    /// <param name="documents"></param>
-    /// <param name="uris"></param>
-    /// <param name="metadatas"></param>
-    /// <param name="database"></param>
+    /// <param name="collectionName">Name of the collection to add records to.</param>
+    /// <param name="ids">List of unique identifiers for the records.</param>
+    /// <param name="embeddings">List of embedding vectors for each record.</param>
+    /// <param name="documents">Optional list of document contents.</param>
+    /// <param name="uris">Optional list of URIs associated with the records.</param>
+    /// <param name="metadatas">Optional list of metadata dictionaries for each record.</param>
+    /// <param name="database">Database name. Defaults to "default_database".</param>
     /// <param name="tenant"></param>
     /// <returns></returns>
     public async Task CollectionUpsertAsync(string collectionName,
@@ -716,11 +716,88 @@ public class ChromaDBClient
                   Configuration = null
               });
 
-        // Upsert records to the collection
+        // Upsert records in the collection
         await ChromaClient.Record.CollectionUpsertAsync(tenant: tenant,
             database: database,
             collectionId: collection.Id.ToString(),
             request: upsertPayload);
+    }
+
+
+    /// <summary>
+    /// Updates records with embeddings and optional metadata in a Chroma collection,
+    /// creating the collection if it doesn't exist. 
+    /// This method is used to modify existing records in the collection.
+    /// </summary>
+    /// <param name="collectionName">Name of the collection to add records to</param>
+    /// <param name="ids">List of unique identifiers for the records.</param>
+    /// <param name="embeddings">List of embedding vectors for each record.</param>
+    /// <param name="documents">Optional list of document contents.</param>
+    /// <param name="uris">Optional list of URIs associated with the records.</param>
+    /// <param name="metadatas">Optional list of metadata dictionaries for each record.</param>
+    /// <param name="database">Database name. Defaults to "default_database".</param>
+    /// <param name="tenant"></param>
+    /// <returns></returns>
+    public async Task CollectionUpdateAsync(string collectionName,
+        IList<string> ids,
+        IList<IList<float>> embeddings,
+        IList<string>? documents,
+        IList<string>? uris,
+        IList<IDictionary<string, object>>? metadatas,
+        string database = "default_database",
+        string tenant = "default_tenant")
+    {
+        var embeddingsPayload = new EmbeddingsPayload
+        {
+            EmbeddingsPayloadVariant1 = embeddings,
+            EmbeddingsPayloadVariant2 = null
+        };
+
+        List<OneOf<object, global::Chroma.HashMap>>? metas = null;
+
+        if (metadatas is not null)
+        {
+            metas = new List<OneOf<object, global::Chroma.HashMap>>();
+
+            foreach (var metadata in metadatas)
+            {
+                HashMap hashMap = new HashMap
+                {
+                    AdditionalProperties = metadata
+                };
+
+                OneOf<object, HashMap> oneOf = new Chroma.OneOf<object, HashMap>(null, hashMap);
+                metas.Add(oneOf);
+            }
+        }
+
+        var updatePayload = new UpdateCollectionRecordsPayload
+        {
+            // required fields
+            Ids = ids,
+            Embeddings = embeddingsPayload,
+            // optional fields
+            Documents = documents,
+            Metadatas = metas,
+            Uris = uris
+        };
+
+        // Get our collection
+        Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
+              database: database,
+              request: new CreateCollectionPayload
+              {
+                  Name = collectionName,
+                  GetOrCreate = true,
+                  Metadata = null,
+                  Configuration = null
+              });
+
+        // Update records in the collection
+        await ChromaClient.Record.CollectionUpdateAsync(tenant: tenant,
+           database: database,
+           collectionId: collection.Id.ToString(),
+           request: updatePayload);
     }
 
     #endregion
