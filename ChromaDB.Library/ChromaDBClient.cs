@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
 using System.Resources;
 using System.Text;
+using System.Text.Json;
 using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -346,11 +347,30 @@ public class ChromaDBClient
         {
             foreach (var metadata in Metadatas)
             {
-                var dict = new Dictionary<string, object>();
+                Dictionary<string, object>? dict = null;
 
                 metadata.Switch(
-                    obj => { /* Handle object case */ },
-                    hashMap => {
+                    obj =>
+                    {
+                        /* Handle object case */
+
+                        // The runtime type of obj is a System.Text.Json.JsonElement
+                        // representing a JSON object; convert it to Dictionary<string, object>.
+                        if (obj is JsonElement { ValueKind: JsonValueKind.Object } element)
+                        {
+                            dict = new Dictionary<string, object>();
+
+                            foreach (var property in element.EnumerateObject())
+                            {
+                                dict[property.Name] = ConvertJsonElement(property.Value)!;
+                            }
+                        }
+                    },
+                    hashMap =>
+                    {
+
+                        dict = new Dictionary<string, object>();
+
                         // Handles the HashMap case and adds its properties to the result dictionary
                         foreach (var kvp in hashMap.AdditionalProperties)
                         {
@@ -358,7 +378,11 @@ public class ChromaDBClient
                         }
                     }
                 );
-                result.Add(dict);
+
+                if (dict is not null)
+                {
+                    result.Add(dict);
+                }
             }
         }
 
@@ -368,7 +392,53 @@ public class ChromaDBClient
 
 
     /// <summary>
-    /// Given a list of embeddingsPayloadVariant1, finds the documents the nearest to the embeddingsPayloadVariant1 in the collection. 
+    /// Recursively converts a <see cref="JsonElement"/> into its closest .NET representation:
+    /// objects become <see cref="Dictionary{TKey, TValue}"/>, arrays become <see cref="List{T}"/>,
+    /// and primitives become their matching CLR types.
+    /// </summary>
+    private static object? ConvertJsonElement(JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                var dict = new Dictionary<string, object>();
+                foreach (var property in element.EnumerateObject())
+                {
+                    dict[property.Name] = ConvertJsonElement(property.Value)!;
+                }
+                return dict;
+
+            case JsonValueKind.Array:
+                var list = new List<object?>();
+                foreach (var item in element.EnumerateArray())
+                {
+                    list.Add(ConvertJsonElement(item));
+                }
+                return list;
+
+            case JsonValueKind.String:
+                return element.GetString();
+
+            case JsonValueKind.Number:
+                if (element.TryGetInt64(out var l))
+                {
+                    return l;
+                }
+                return element.GetDouble();
+
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+                return element.GetBoolean();
+
+            case JsonValueKind.Null:
+            case JsonValueKind.Undefined:
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Given a list of query embeddings, finds the documents nearest to them in the collection.
     /// The result is a list of documents, one for each embedding in the query.
     /// </summary>
     /// <returns></returns>

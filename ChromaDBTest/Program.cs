@@ -229,8 +229,12 @@ WhereFilter whereFilter = new WhereFilter()
 
 // {"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}
 var whereAsJson = JsonSerializer.Serialize(whereFilter);
+Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
 // No restriction on ids, so we can pass null for the ids parameter.
+// BUG : for now the include paramter are not sent to the server nor the paging parameters :
+// {"where":{"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}}
+
 var result = await chromaDBClient.CollectionGetAsync("collection10", 
     null, include, whereFilter, null, 10, 0,
     "database1", "default_tenant");
