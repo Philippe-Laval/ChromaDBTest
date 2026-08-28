@@ -493,7 +493,12 @@ public class ChromaDBClient
 
             foreach (var metadata in metadatas)
             {
-                OneOf<object, HashMap> oneOf = new Chroma.OneOf<object, HashMap>(metadatas, null);
+                HashMap hashMap = new HashMap
+                {
+                    AdditionalProperties = metadata
+                };
+
+                OneOf<object, HashMap> oneOf = new Chroma.OneOf<object, HashMap>(null, hashMap);
                 metas.Add(oneOf);
             }
         }
@@ -507,7 +512,7 @@ public class ChromaDBClient
             Embeddings = embeddingsPayload,
             // optional fields
             Documents = documents,
-            Metadatas = null, //metas,
+            Metadatas = metas,
             Uris = uris
         };
 
