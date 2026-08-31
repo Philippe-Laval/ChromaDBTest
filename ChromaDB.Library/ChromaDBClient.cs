@@ -369,7 +369,7 @@ public class ChromaDBClient
     /// null.</param>
     /// <returns>A list of dictionaries containing the converted metadata. Returns an empty list if <paramref name="Metadatas"/>
     /// is null.</returns>
-    private IList<IDictionary<string, object>> ConvertMetadatas(IList<global::Chroma.OneOf<object, global::Chroma.HashMap>>? Metadatas)
+    private IList<IDictionary<string, object>> ConvertMetadatas(IList<Chroma.HashMap?>? Metadatas)
     {
         var result = new List<IDictionary<string, object>>();
 
@@ -379,35 +379,45 @@ public class ChromaDBClient
             {
                 Dictionary<string, object>? dict = null;
 
-                metadata.Switch(
-                    obj =>
+                if (metadata is not null)
+                {
+                    dict = new Dictionary<string, object>();
+                    foreach (var kvp in metadata.AdditionalProperties)
                     {
-                        /* Handle object case */
-
-                        // The runtime type of obj is a System.Text.Json.JsonElement
-                        // representing a JSON object; convert it to Dictionary<string, object>.
-                        if (obj is JsonElement { ValueKind: JsonValueKind.Object } element)
-                        {
-                            dict = new Dictionary<string, object>();
-
-                            foreach (var property in element.EnumerateObject())
-                            {
-                                dict[property.Name] = ConvertJsonElement(property.Value)!;
-                            }
-                        }
-                    },
-                    hashMap =>
-                    {
-
-                        dict = new Dictionary<string, object>();
-
-                        // Handles the HashMap case and adds its properties to the result dictionary
-                        foreach (var kvp in hashMap.AdditionalProperties)
-                        {
-                            dict[kvp.Key] = kvp.Value;
-                        }
+                        dict[kvp.Key] = kvp.Value;
                     }
-                );
+                }
+
+
+                //metadata.Switch(
+                //    obj =>
+                //    {
+                //        /* Handle object case */
+
+                //        // The runtime type of obj is a System.Text.Json.JsonElement
+                //        // representing a JSON object; convert it to Dictionary<string, object>.
+                //        if (obj is JsonElement { ValueKind: JsonValueKind.Object } element)
+                //        {
+                //            dict = new Dictionary<string, object>();
+
+                //            foreach (var property in element.EnumerateObject())
+                //            {
+                //                dict[property.Name] = ConvertJsonElement(property.Value)!;
+                //            }
+                //        }
+                //    },
+                //    hashMap =>
+                //    {
+
+                //        dict = new Dictionary<string, object>();
+
+                //        // Handles the HashMap case and adds its properties to the result dictionary
+                //        foreach (var kvp in hashMap.AdditionalProperties)
+                //        {
+                //            dict[kvp.Key] = kvp.Value;
+                //        }
+                //    }
+                //);
 
                 if (dict is not null)
                 {
@@ -551,22 +561,22 @@ public class ChromaDBClient
 
             if (queryResponse.Documents != null && queryResponse.Documents.Count > 0)
             {
-                IList<string>? documents = queryResponse.Documents[0];
+                IList<string?>? documents = queryResponse.Documents[0];
             }
 
             if (queryResponse.Distances != null && queryResponse.Distances.Count > 0)
             {
-                IList<float>? distances = queryResponse.Distances[0];
+                IList<float?>? distances = queryResponse.Distances[0];
             }
 
             if (queryResponse.Metadatas != null && queryResponse.Metadatas.Count > 0)
             {
-                IList<OneOf<object, HashMap>>? metadatas = queryResponse.Metadatas[0];
+                IList<Chroma.HashMap?>? metadatas = queryResponse.Metadatas[0];
             }
 
             if (queryResponse.Uris != null && queryResponse.Uris.Count > 0)
             {
-                IList<string>? uris = queryResponse.Uris[0];
+                IList<string?>? uris = queryResponse.Uris[0];
             }
 
         }
@@ -589,8 +599,8 @@ public class ChromaDBClient
     public async Task CollectionAddAsync(string collectionName,
         IList<string> ids,
         IList<IList<float>> embeddings,
-        IList<string>? documents,
-        IList<string>? uris,
+        IList<string?>? documents,
+        IList<string?>? uris,
         IList<IDictionary<string, object>>? metadatas,
         string database = "default_database",
         string tenant = "default_tenant")
@@ -601,11 +611,11 @@ public class ChromaDBClient
             EmbeddingsPayloadVariant2 = null
         };
 
-        List<OneOf<object, global::Chroma.HashMap>>? metas = null;
+        IList<Chroma.HashMap?>? metas = null;
 
         if (metadatas is not null)
         {
-            metas = new List<OneOf<object, global::Chroma.HashMap>>();
+            metas = new List<Chroma.HashMap?>();
 
             foreach (var metadata in metadatas)
             {
@@ -614,8 +624,7 @@ public class ChromaDBClient
                     AdditionalProperties = metadata
                 };
 
-                OneOf<object, HashMap> oneOf = new Chroma.OneOf<object, HashMap>(null, hashMap);
-                metas.Add(oneOf);
+                metas.Add(hashMap);
             }
         }
 
@@ -664,8 +673,8 @@ public class ChromaDBClient
     public async Task CollectionUpsertAsync(string collectionName,
         IList<string> ids,
         IList<IList<float>> embeddings,
-        IList<string>? documents,
-        IList<string>? uris,
+        IList<string?>? documents,
+        IList<string?>? uris,
         IList<IDictionary<string, object>>? metadatas,
         string database = "default_database",
         string tenant = "default_tenant")
@@ -676,11 +685,11 @@ public class ChromaDBClient
             EmbeddingsPayloadVariant2 = null
         };
 
-        List<OneOf<object, global::Chroma.HashMap>>? metas = null;
+        IList<Chroma.HashMap?>? metas = null;
 
         if (metadatas is not null)
         {
-            metas = new List<OneOf<object, global::Chroma.HashMap>>();
+            metas = new List<Chroma.HashMap?>();
 
             foreach (var metadata in metadatas)
             {
@@ -689,8 +698,7 @@ public class ChromaDBClient
                     AdditionalProperties = metadata
                 };
 
-                OneOf<object, HashMap> oneOf = new Chroma.OneOf<object, HashMap>(null, hashMap);
-                metas.Add(oneOf);
+                metas.Add(hashMap);
             }
         }
 
@@ -740,24 +748,24 @@ public class ChromaDBClient
     /// <returns></returns>
     public async Task CollectionUpdateAsync(string collectionName,
         IList<string> ids,
-        IList<IList<float>> embeddings,
-        IList<string>? documents,
-        IList<string>? uris,
+        IList<IList<float>?>? embeddings,
+        IList<string?>? documents,
+        IList<string?>? uris,
         IList<IDictionary<string, object>>? metadatas,
         string database = "default_database",
         string tenant = "default_tenant")
     {
-        var embeddingsPayload = new EmbeddingsPayload
+        var embeddingsPayload = new UpdateEmbeddingsPayload
         {
-            EmbeddingsPayloadVariant1 = embeddings,
-            EmbeddingsPayloadVariant2 = null
+            UpdateEmbeddingsPayloadVariant1 = embeddings,
+            UpdateEmbeddingsPayloadVariant2 = null
         };
 
-        List<OneOf<object, global::Chroma.HashMap>>? metas = null;
+        IList<Chroma.HashMap?>? metas = null;
 
         if (metadatas is not null)
         {
-            metas = new List<OneOf<object, global::Chroma.HashMap>>();
+            metas = new List<Chroma.HashMap?>();
 
             foreach (var metadata in metadatas)
             {
@@ -766,8 +774,7 @@ public class ChromaDBClient
                     AdditionalProperties = metadata
                 };
 
-                OneOf<object, HashMap> oneOf = new Chroma.OneOf<object, HashMap>(null, hashMap);
-                metas.Add(oneOf);
+                metas.Add(hashMap);
             }
         }
 

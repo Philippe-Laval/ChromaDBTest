@@ -430,26 +430,24 @@ namespace ChromaDBTest
             }
         }
 
-        private static IList<IDictionary<string, object>> ConvertMetadatas(IList<global::Chroma.OneOf<object, global::Chroma.HashMap>>? Metadatas)
+        private static IList<IDictionary<string, object>> ConvertMetadatas(IList<Chroma.HashMap?>? metadatas)
         {
             var result = new List<IDictionary<string, object>>();
 
-            if (Metadatas != null)
+            if (metadatas != null)
             {
-                foreach (var metadata in Metadatas)
+                foreach (var metadata in metadatas)
                 {
                     var dict = new Dictionary<string, object>();
 
-                    metadata.Switch(
-                        obj => { /* Handle object case */ },
-                        hashMap => {
-                            // Handles the HashMap case and adds its properties to the result dictionary
-                            foreach (var kvp in hashMap.AdditionalProperties)
-                            {
-                                dict[kvp.Key] = kvp.Value;
-                            }
+                    if (metadata != null)
+                    {
+                        foreach (var kvp in metadata.AdditionalProperties)
+                        {
+                            dict[kvp.Key] = kvp.Value;
                         }
-                    );
+                    }
+
                     result.Add(dict);
                 }
             }
@@ -508,22 +506,22 @@ namespace ChromaDBTest
 
                 if (queryResponse.Documents != null && queryResponse.Documents.Count > 0)
                 {
-                    IList<string>? documents = queryResponse.Documents[0];
+                    IList<string?>? documents = queryResponse.Documents[0];
                 }
 
                 if (queryResponse.Distances != null && queryResponse.Distances.Count > 0)
                 {
-                    IList<float>? distances = queryResponse.Distances[0];
+                    IList<float?>? distances = queryResponse.Distances[0];
                 }
 
                 if (queryResponse.Metadatas != null && queryResponse.Metadatas.Count > 0)
                 {
-                    IList<OneOf<object, HashMap>>? metadatas = queryResponse.Metadatas[0];
+                    IList<Chroma.HashMap?>? metadatas = queryResponse.Metadatas[0];
                 }
 
                 if (queryResponse.Uris != null && queryResponse.Uris.Count > 0)
                 {
-                    IList<string>? uris = queryResponse.Uris[0];
+                    IList<string?>? uris = queryResponse.Uris[0];
                 }
 
             }
