@@ -294,7 +294,7 @@ public class ChromaDBClient
         List<string>? ids,
         List<Include>? include,
         WhereFilter? where,
-        object? whereDocument,
+        WhereDocumentFilter? whereDocument,
         int? limit,
         int? offset,
         string database = "default_database",
@@ -321,8 +321,9 @@ public class ChromaDBClient
             rawWhereFields = new RawWhereFields
             {
                 // It is mandatory to convert the WhereFilter to a JsonElement for the RawWhereFields
-                Where = where?.ToJsonElement(),     
-                WhereDocument = whereDocument
+                Where = where?.ToJsonElement(),
+                // It is mandatory to convert the WhereDocumentFilter to a JsonElement for the RawWhereFields
+                WhereDocument = whereDocument?.ToJsonElement()
             };
         }
 
@@ -502,7 +503,7 @@ public class ChromaDBClient
         IList<string>? ids,
         int? nResults,
         WhereFilter? where,
-        object? whereDocument,
+        WhereDocumentFilter? whereDocument,
         int? limit,
         int? offset,
         string database = "default_database",
@@ -536,7 +537,8 @@ public class ChromaDBClient
             {
                 // It is mandatory to convert the WhereFilter to a JsonElement for the RawWhereFields
                 Where = where?.ToJsonElement(),
-                WhereDocument = whereDocument
+                // It is mandatory to convert the WhereDocumentFilter to a JsonElement for the RawWhereFields
+                WhereDocument = whereDocument?.ToJsonElement()
             };
         }
 
