@@ -8,7 +8,7 @@ namespace ChromaDB.Library;
 /// <summary>
 /// Result of a query operation
 /// </summary>
-public class QueryResult : IEnumerable<ChromaDocument>
+public class QueryResult : IEnumerable<ChromaDbDocument>
 {
     /// <summary>
     /// Document IDs
@@ -50,13 +50,13 @@ public class QueryResult : IEnumerable<ChromaDocument>
     /// Gets the documents as a list of ChromaDocument objects
     /// </summary>
     /// <returns>List of ChromaDocument objects</returns>
-    public List<ChromaDocument> ToDocuments()
+    public List<ChromaDbDocument> ToDocuments()
     {
-        var results = new List<ChromaDocument>();
+        var results = new List<ChromaDbDocument>();
 
         for (int i = 0; i < Ids.Count; i++)
         {
-            var doc = new ChromaDocument
+            var doc = new ChromaDbDocument
             {
                 Id = Ids[i],
                 Embeddings = (Embeddings != null && i < Embeddings.Count) ? Embeddings[i] : null,
@@ -75,12 +75,12 @@ public class QueryResult : IEnumerable<ChromaDocument>
     /// Gets the first document from the results
     /// </summary>
     /// <returns>First document or null if no results</returns>
-    public ChromaDocument? FirstOrDefault()
+    public ChromaDbDocument? FirstOrDefault()
     {
         if (Ids.Count == 0)
             return null;
 
-        return new ChromaDocument
+        return new ChromaDbDocument
         {
             Id = Ids[0],
             Embeddings = (Embeddings != null && Embeddings.Count > 0) ? Embeddings[0] : null,
@@ -94,11 +94,11 @@ public class QueryResult : IEnumerable<ChromaDocument>
     /// Returns an enumerator that iterates through the collection of ChromaDocuments
     /// </summary>
     /// <returns>An enumerator that can be used to iterate through the collection</returns>
-    public IEnumerator<ChromaDocument> GetEnumerator()
+    public IEnumerator<ChromaDbDocument> GetEnumerator()
     {
         for (int i = 0; i < Ids.Count; i++)
         {
-            yield return new ChromaDocument
+            yield return new ChromaDbDocument
             {
                 Id = Ids[i],
                 Embeddings = (Embeddings != null && i < Embeddings.Count) ? Embeddings[i] : null,

@@ -8,7 +8,7 @@ namespace ChromaDB.Library;
 /// <summary>
 /// A document to be stored in ChromaDB
 /// </summary>
-public class ChromaDocument
+public class ChromaDbDocument
 {
     /// <summary>
     /// Unique identifier for the document
@@ -35,14 +35,14 @@ public class ChromaDocument
     /// </summary>
     public string? Uri { get; set; }
 
-    public ChromaDocument()
+    public ChromaDbDocument()
     {
     }
 
 
-    public static ChromaDocument Create(string id, IList<float>? embeddings, string text, IDictionary<string, object>? metadata = null)
+    public static ChromaDbDocument Create(string id, IList<float>? embeddings, string text, IDictionary<string, object>? metadata = null)
     {
-        return new ChromaDocument
+        return new ChromaDbDocument
         {
             Id = id,
             Embeddings = embeddings,
@@ -58,9 +58,9 @@ public class ChromaDocument
     /// <param name="text">Document text</param>
     /// <param name="metadata">Optional metadata</param>
     /// <returns>A new ChromaDocument</returns>
-    public static ChromaDocument Create(string id, string text, Dictionary<string, object>? metadata = null)
+    public static ChromaDbDocument Create(string id, string text, Dictionary<string, object>? metadata = null)
     {
-        return new ChromaDocument
+        return new ChromaDbDocument
         {
             Id = id,
             Text = text,
@@ -75,9 +75,9 @@ public class ChromaDocument
     /// <param name="embedding">Embedding vector</param>
     /// <param name="metadata">Optional metadata</param>
     /// <returns>A new ChromaDocument</returns>
-    public static ChromaDocument CreateWithEmbedding(string id, IList<float>? embeddings, IDictionary<string, object>? metadata = null)
+    public static ChromaDbDocument CreateWithEmbedding(string id, IList<float>? embeddings, IDictionary<string, object>? metadata = null)
     {
-        return new ChromaDocument
+        return new ChromaDbDocument
         {
             Id = id,
             Embeddings = embeddings,

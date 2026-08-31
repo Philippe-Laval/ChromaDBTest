@@ -290,7 +290,7 @@ public class ChromaDBClient
     /// <param name="tenant">The name of the tenant containing the database.</param>
     /// <param name="database">The name of the database containing the collection.</param>
     /// <returns>A list of ChromaDocument objects matching the query parameters.</returns>
-    public async Task<List<ChromaDocument>> CollectionGetAsync(string collectionName,
+    public async Task<List<ChromaDbDocument>> CollectionGetAsync(string collectionName,
         List<string>? ids,
         List<Include>? include,
         WhereFilter? where,
@@ -300,7 +300,7 @@ public class ChromaDBClient
         string database = "default_database",
         string tenant = "default_tenant")
     {
-        List<ChromaDocument> result = new List<ChromaDocument>();
+        List<ChromaDbDocument> result = new List<ChromaDbDocument>();
 
         // Get our collection
         Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
