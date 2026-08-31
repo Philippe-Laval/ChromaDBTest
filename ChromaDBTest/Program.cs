@@ -238,7 +238,7 @@ await chromaDBClient.CollectionUpsertAsync("collection10",
 
 // CollectionGetAsync with a where filter to get documents with category "Botanic books" and page greater than 10.
 
-WhereFilter whereFilter = new WhereFilter()
+var whereFilter = new WhereFilter()
     .Equals("category", "Botanic books")
     .GreaterThan("page", 10);
 JsonElement whereAsJsonElement = whereFilter.ToJsonElement();
@@ -246,21 +246,21 @@ string whereAsJson = JsonSerializer.Serialize(whereAsJsonElement);
 // {"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}
 Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
-whereFilter = new WhereFilter()
+var whereFilter2 = new WhereFilter()
            .Equals("category", "Botanic books")
            .GreaterThan("page", 10)
-           .In("language", ["en", "fr"]);
-whereAsJsonElement = whereFilter.ToJsonElement();
+           .In("language", new List<string> { "en", "fr" });
+whereAsJsonElement = whereFilter2.ToJsonElement();
 whereAsJson = JsonSerializer.Serialize(whereAsJsonElement);
 // {"$and":[{"category":"Botanic books"},{"page":{"$gt":10}},{"language":{"$in":["en","fr"]}}]}
 Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
-whereFilter = new WhereFilter()
+var whereFilter3 = new WhereFilter()
            .Equals("published", true)
            .Any(
                new WhereFilter().Equals("language", "en"),
                new WhereFilter().Equals("language", "fr"));
-whereAsJsonElement = whereFilter.ToJsonElement();
+whereAsJsonElement = whereFilter3.ToJsonElement();
 whereAsJson = JsonSerializer.Serialize(whereAsJsonElement);
 // {"$and":[{"published":true},{"$or":[{"$and":[{"language":"en"}]},{"$and":[{"language":"fr"}]}]}]}
 Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
@@ -268,7 +268,7 @@ Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
 
 // all records whose document contains a search string
-WhereDocumentFilter whereDocumentFilter1 = new WhereDocumentFilter()
+var whereDocumentFilter1 = new WhereDocumentFilter()
     .Contains("search string");
 JsonElement whereDocumentAsJsonElement = whereDocumentFilter1.ToJsonElement();
 string whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
@@ -276,7 +276,7 @@ string whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement
 Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
 // records whose documents match the regex pattern for an email address
-WhereDocumentFilter whereDocumentFilter2 = new WhereDocumentFilter()
+var whereDocumentFilter2 = new WhereDocumentFilter()
     .Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 whereDocumentAsJsonElement = whereDocumentFilter2.ToJsonElement();
 whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
@@ -284,7 +284,7 @@ whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
 Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
 // An $and operator will return results that match all the filters in the list
-WhereDocumentFilter whereDocumentFilter3 = new WhereDocumentFilter()
+var whereDocumentFilter3 = new WhereDocumentFilter()
     .Or()
     .NotContains("search_string_2")
     .NotRegex("[0-9]+")
@@ -298,7 +298,7 @@ whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
 Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
 // An $or operator will return results that match any of the filters in the list
-WhereDocumentFilter whereDocumentFilter4 = new WhereDocumentFilter()
+var whereDocumentFilter4 = new WhereDocumentFilter()
     .Regex("[a-z]+")
     .NotRegex("[0-9]+")
     .Any(
@@ -309,7 +309,7 @@ whereDocumentAsJsonElement = whereDocumentFilter4.ToJsonElement();
 whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
 Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
-WhereDocumentFilter whereDocumentFilter5 = new WhereDocumentFilter()
+var whereDocumentFilter5 = new WhereDocumentFilter()
     .Contains("search_string_1")
     .Or()
     .NotContains("search_string_2");
@@ -318,7 +318,7 @@ whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
 // {"$or":[{"$contains":"search_string_1"},{"$not_contains":"search_string_2"}]}
 Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
-WhereDocumentFilter whereDocumentFilter6= new WhereDocumentFilter()
+var whereDocumentFilter6 = new WhereDocumentFilter()
     .Contains("search_string_1")
     .Regex("[a-z]+");
 whereDocumentAsJsonElement = whereDocumentFilter6.ToJsonElement();
@@ -328,9 +328,7 @@ Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
 
 // No restriction on ids, so we can pass null for the ids parameter.
-// BUG : for now the include paramter are not sent to the server nor the paging parameters :
 // {"where":{"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}}
-
 var result = await chromaDBClient.CollectionGetAsync("collection10", 
     null, include, whereFilter, null, 10, 0,
     "database1", "default_tenant");
@@ -344,6 +342,21 @@ foreach (var document in result)
     Console.WriteLine($"Document Uri: {document.Uri}");
 }
 
+IList<IList<ChromaDbDocument>> listOfDocumentList = 
+    await chromaDBClient.CollectionQueryAsync("collection10", embeddings, include, null, 2, null, null, 10, 0,
+    "database1", "default_tenant");
+
+foreach (var documentList in listOfDocumentList)
+{
+    foreach (var document in documentList)
+    {
+        Console.WriteLine($"Document Id: {document.Id}");
+        Console.WriteLine($"Document Content: {document.Text}");
+        Console.WriteLine($"Document Embedding: {string.Join(", ", document.Embeddings ?? new List<float>())}");
+        Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object>())}");
+        Console.WriteLine($"Document Uri: {document.Uri}");
+    }
+}
 
 
 var client = TryAGIChromaTest.CreateClient();

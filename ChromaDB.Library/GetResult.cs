@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections;
 
 namespace ChromaDB.Library;
 
-/// <summary>
-/// Result of a query operation
-/// </summary>
-public class QueryResult : IEnumerable<ChromaDbDocument>
+public class GetResult : IEnumerable<ChromaDbDocument>
 {
     /// <summary>
     /// Document IDs
@@ -18,12 +12,7 @@ public class QueryResult : IEnumerable<ChromaDbDocument>
     /// <summary>
     /// Document embeddings
     /// </summary>
-    public IList<IList<float>?>? Embeddings { get; set; }
-
-    /// <summary>
-    /// Distance scores (lower is more similar)
-    /// </summary>
-    public IList<float?>? Distances { get; set; }
+    public IList<IList<float>>? Embeddings { get; set; }
 
     /// <summary>
     /// Document metadata
@@ -39,7 +28,7 @@ public class QueryResult : IEnumerable<ChromaDbDocument>
     /// Document URIs (if available)
     /// </summary>
     public IList<string?>? Uris { get; set; }
-    
+
 
     /// <summary>
     /// Gets the number of results

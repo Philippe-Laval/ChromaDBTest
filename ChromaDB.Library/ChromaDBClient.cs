@@ -445,17 +445,16 @@ public class ChromaDBClient
 
         if (response != null)
         {
-            QueryResult queryResult = new QueryResult
+            GetResult getResult = new GetResult
             {
                 Ids = response.Ids,
-                //Distances = response.Distances,
                 Embeddings = response.Embeddings,
                 Documents = response.Documents,
                 Metadatas = ConvertMetadatas(response.Metadatas),
                 Uris = response.Uris
             };
 
-            result = queryResult.ToDocuments();
+            result = getResult.ToDocuments();
         }
 
         return result;
@@ -468,12 +467,14 @@ public class ChromaDBClient
     /// null.</param>
     /// <returns>A list of dictionaries containing the converted metadata. Returns an empty list if <paramref name="Metadatas"/>
     /// is null.</returns>
-    private IList<IDictionary<string, object>> ConvertMetadatas(IList<Chroma.HashMap?>? Metadatas)
+    private IList<IDictionary<string, object>?>? ConvertMetadatas(IList<Chroma.HashMap?>? Metadatas)
     {
-        var result = new List<IDictionary<string, object>>();
+        List<IDictionary<string, object>?>? result = null;
 
         if (Metadatas != null)
         {
+            result = new List<IDictionary<string, object>?>();
+
             foreach (var metadata in Metadatas)
             {
                 Dictionary<string, object>? dict = null;
@@ -487,47 +488,12 @@ public class ChromaDBClient
                     }
                 }
 
-
-                //metadata.Switch(
-                //    obj =>
-                //    {
-                //        /* Handle object case */
-
-                //        // The runtime type of obj is a System.Text.Json.JsonElement
-                //        // representing a JSON object; convert it to Dictionary<string, object>.
-                //        if (obj is JsonElement { ValueKind: JsonValueKind.Object } element)
-                //        {
-                //            dict = new Dictionary<string, object>();
-
-                //            foreach (var property in element.EnumerateObject())
-                //            {
-                //                dict[property.Name] = ConvertJsonElement(property.Value)!;
-                //            }
-                //        }
-                //    },
-                //    hashMap =>
-                //    {
-
-                //        dict = new Dictionary<string, object>();
-
-                //        // Handles the HashMap case and adds its properties to the result dictionary
-                //        foreach (var kvp in hashMap.AdditionalProperties)
-                //        {
-                //            dict[kvp.Key] = kvp.Value;
-                //        }
-                //    }
-                //);
-
-                if (dict is not null)
-                {
-                    result.Add(dict);
-                }
+                result.Add(dict);
             }
         }
 
         return result;
     }
-
 
 
     /// <summary>
@@ -594,7 +560,7 @@ public class ChromaDBClient
     /// <param name="database">The name of the database containing the collection.</param>
     /// <param name="tenant">The name of the tenant containing the database.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public async Task CollectionQueryAsync(string collectionName,
+    public async Task<IList<IList<ChromaDbDocument>>> CollectionQueryAsync(string collectionName,
         IList<IList<float>> queryEmbeddings,
         IList<Include>? include,
         IList<string>? ids,
@@ -606,6 +572,8 @@ public class ChromaDBClient
         string database = "default_database",
         string tenant = "default_tenant")
     {
+        List<IList<ChromaDbDocument>> result = new List<IList<ChromaDbDocument>>();
+
         // Get our collection
         Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
               database: database,
@@ -655,33 +623,26 @@ public class ChromaDBClient
 
         if (queryResponse != null)
         {
-            if (queryResponse.Ids != null && queryResponse.Ids.Count > 0)
-            {
-                IList<string>? _ids = queryResponse.Ids[0];
-            }
+            int count = queryResponse.Ids.Count;
 
-            if (queryResponse.Documents != null && queryResponse.Documents.Count > 0)
+            for (int index = 0; index < count; index++)
             {
-                IList<string?>? documents = queryResponse.Documents[0];
-            }
+                QueryResult queryResult = new QueryResult
+                {
+                    Ids = queryResponse.Ids[index],
+                    Embeddings = queryResponse.Embeddings?[index],
+                    Distances = queryResponse.Distances?[index],
+                    Documents = queryResponse.Documents?[index],
+                    Metadatas = ConvertMetadatas(queryResponse.Metadatas?[index]),
+                    Uris = queryResponse.Uris?[index]
+                };
 
-            if (queryResponse.Distances != null && queryResponse.Distances.Count > 0)
-            {
-                IList<float?>? distances = queryResponse.Distances[0];
+                var documents = queryResult.ToDocuments();
+                result.Add(documents);  
             }
-
-            if (queryResponse.Metadatas != null && queryResponse.Metadatas.Count > 0)
-            {
-                IList<Chroma.HashMap?>? metadatas = queryResponse.Metadatas[0];
-            }
-
-            if (queryResponse.Uris != null && queryResponse.Uris.Count > 0)
-            {
-                IList<string?>? uris = queryResponse.Uris[0];
-            }
-
         }
 
+        return result;
     }
 
     /// <summary>
