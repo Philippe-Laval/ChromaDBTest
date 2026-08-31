@@ -56,6 +56,103 @@ public class ChromaDBClient
 
     #endregion
 
+    #region Tenant Management
+
+    public async Task<ChromaDBTenant?> GetOrCreateTenantAsync(string tenantName)
+    {
+        ChromaDBTenant? chromaDBTenant = null;
+
+        try
+        {
+            var getTenantResponse = await ChromaClient.Tenant.GetTenantAsync(tenantName);
+
+            chromaDBTenant = new ChromaDBTenant(tenantName, ChromaClient);
+        }
+        catch (Exception ex1) when (ex1.Message.Contains("NotFoundError"))
+        {
+            try
+            {
+                var createTenantResponse = await ChromaClient.Tenant.CreateTenantAsync(new CreateTenantPayload
+                {
+                    Name = tenantName
+                });
+
+                chromaDBTenant = new ChromaDBTenant(tenantName, ChromaClient);
+            }
+            catch (Exception ex2)
+            {
+                Console.WriteLine($"Error creating a tenant: {ex2.Message}");
+            }
+        }
+
+        return chromaDBTenant;
+    }
+
+    /// <summary>
+    /// Creates a new tenant with the specified name.
+    /// </summary>
+    /// <param name="tenantName"></param>
+    /// <returns></returns>
+    public async Task<ChromaDBTenant?> CreateTenantAsync(string tenantName)
+    {
+        ChromaDBTenant? chromaDBTenant = null;
+
+        try
+        {
+            var createTenantResponse = await ChromaClient.Tenant.CreateTenantAsync(
+                new CreateTenantPayload {
+                    Name = tenantName
+                }
+            );
+
+            chromaDBTenant = new ChromaDBTenant(tenantName, ChromaClient);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating a tenant: {ex.Message}");
+        }
+
+        return chromaDBTenant;
+    }
+
+    public async Task<ChromaDBTenant?> GetTenantAsync(string tenantName)
+    {
+        ChromaDBTenant? chromaDBTenant = null;
+
+        try
+        {
+            var getTenantResponse = await ChromaClient.Tenant.GetTenantAsync(tenantName);
+            
+            chromaDBTenant = new ChromaDBTenant(tenantName, ChromaClient);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting a tenant: {ex.Message}");
+        }
+
+        return chromaDBTenant;
+    }
+
+
+    /// <summary>
+    /// Seems not to work, but the API is there. It should update the tenant name.
+    /// </summary>
+    /// <param name="oldTenantName"></param>
+    /// <param name="newTenantName"></param>
+    /// <returns></returns>
+    public async Task UpdateTenantAsync(string oldTenantName, string newTenantName)
+    {
+        var updateTenantResponse = await ChromaClient.Tenant.UpdateTenantAsync(oldTenantName, 
+            request: new UpdateTenantPayload
+            {
+                ResourceName = newTenantName
+            }
+        );
+    }
+
+
+    #endregion
+
     #region Database Management
 
     public async Task<ChromaDBDatabase?> CreateDatabaseAsync(string databaseName,

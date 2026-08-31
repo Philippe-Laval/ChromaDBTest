@@ -52,24 +52,39 @@ sysdb:
 
 await chromaDBClient.ResetAsync();
 
+#region Tenants
 
-var databases = await chromaDBClient.ListDatabasesAsync();
+var tenant1 = await chromaDBClient.GetOrCreateTenantAsync("Tenant1");
+
+var tenant2 = await chromaDBClient.CreateTenantAsync("Tenant2");
+// Should fail since the tenant already exists (returns null).
+var tenant21 = await chromaDBClient.CreateTenantAsync("Tenant2");
+var tenant22 = await chromaDBClient.GetTenantAsync("Tenant2");
+// Should fail since the tenant does not exist (returns null).
+var tenant31 = await chromaDBClient.GetTenantAsync("Tenant3");
+var tenant32 = await chromaDBClient.CreateTenantAsync("Tenant3");
+// Seems not to work (not renamed)
+await chromaDBClient.UpdateTenantAsync("Tenant3", "Tenant4");
+
+#endregion
+
+var databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
 foreach (var db in databases)
 {
-    Console.WriteLine($"Database: {db.Id} {db.Name} {db.Tenant}");
+    Console.WriteLine($"Database: {db.Id} {db.DatabaseName} {db.TenantName}");
 }
 
-if (!databases.Any(db => db.Name == "database1"))
+if (!databases.Any(db => db.DatabaseName == "database1"))
 {
     await chromaDBClient.CreateDatabaseAsync("database1", "default_tenant");
 }
 
-if (!databases.Any(db => db.Name == "database2"))
+if (!databases.Any(db => db.DatabaseName == "database2"))
 {
     await chromaDBClient.CreateDatabaseAsync("database2", "default_tenant");
 }
 
-if (!databases.Any(db => db.Name == "database3"))
+if (!databases.Any(db => db.DatabaseName == "database3"))
 {
     await chromaDBClient.CreateDatabaseAsync("database3", "default_tenant");
 }
@@ -77,7 +92,7 @@ if (!databases.Any(db => db.Name == "database3"))
 // Refresh the list of databases after creation
 databases = await chromaDBClient.ListDatabasesAsync();
 
-if (databases.Any(db => db.Name == "database3"))
+if (databases.Any(db => db.DatabaseName == "database3"))
 {
     await chromaDBClient.DeleteDatabaseAsync("database3", "default_tenant");
 }
@@ -86,7 +101,7 @@ if (databases.Any(db => db.Name == "database3"))
 databases = await chromaDBClient.ListDatabasesAsync();
 foreach (var db in databases)
 {
-    Console.WriteLine($"Database: {db.Id} {db.Name} {db.Tenant}");
+    Console.WriteLine($"Database: {db.Id} {db.DatabaseName} {db.TenantName}");
 }
 
 // Count collections in each database
@@ -102,8 +117,8 @@ foreach (var collection in collections)
     Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
 }
 
-var database1 = databases.FirstOrDefault(db => db.Name == "database1");
-var database2 = databases.FirstOrDefault(db => db.Name == "database2");
+var database1 = databases.FirstOrDefault(db => db.DatabaseName == "database1");
+var database2 = databases.FirstOrDefault(db => db.DatabaseName == "database2");
 
 if (database1 != null)
 {

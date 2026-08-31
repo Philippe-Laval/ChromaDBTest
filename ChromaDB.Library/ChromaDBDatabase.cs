@@ -5,21 +5,29 @@ using System.Text;
 
 namespace ChromaDB.Library
 {
-    public record ChromaDBDatabase(Guid? Id, string Name, string Tenant, ChromaClient ChromaClient)
+    public record ChromaDBDatabase(Guid? Id, string DatabaseName, string TenantName, ChromaClient ChromaClient)
     {
+        /// <summary>
+        /// Counts the collection in the database.
+        /// </summary>
+        /// <returns></returns>
         public async Task<int> CountCollectionsAsync()
         {
-            var count = await ChromaClient.Collection.CountCollectionsAsync(tenant: Tenant, database: Name);
+            var count = await ChromaClient.Collection.CountCollectionsAsync(tenant: TenantName, database: DatabaseName);
             return count;
         }
 
+        /// <summary>
+        /// Lists all collections in the database.
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<ChromaDBCollection>> ListCollectionsAsync()
         {
             List<ChromaDBCollection> result = new List<ChromaDBCollection>();
 
             var vecItems = await ChromaClient.Collection.ListCollectionsAsync(
-                tenant: Tenant,
-                database: Name);
+                tenant: TenantName,
+                database: DatabaseName);
 
             foreach (var vecItem in vecItems)
             {
@@ -54,7 +62,7 @@ namespace ChromaDB.Library
                 // The vecItem id is a guid, but the vecItem name is a string.
 
                 // Bug for now : throw an exception when the vecItem does not exist
-                Collection? myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: Tenant, database: Name, collectionId: collectionId);
+                Collection? myCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: TenantName, database: DatabaseName, collectionId: collectionId);
                 if (myCollection != null)
                 {
                     chromaDBCollection = new ChromaDBCollection(myCollection, ChromaClient);
@@ -71,8 +79,8 @@ namespace ChromaDB.Library
         public async Task<ChromaDBCollection> GetOrCreateCollection(string collectionName)
         {
             // Get our vecItem
-            Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: Tenant,
-                database: Name,
+            Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: TenantName,
+                database: DatabaseName,
                 request: new CreateCollectionPayload
                 {
                     Name = collectionName,
@@ -88,12 +96,12 @@ namespace ChromaDB.Library
         {
             try
             {
-                Collection? collection = await ChromaClient.Collection.GetCollectionAsync(tenant: Tenant, database: Name, collectionId: collectionName);
+                Collection? collection = await ChromaClient.Collection.GetCollectionAsync(tenant: TenantName, database: DatabaseName, collectionId: collectionName);
                 if (collection != null)
                 {
                     // Delete the collection
-                    var deleteCollectionResponse = await ChromaClient.Collection.DeleteCollectionAsync(tenant: Tenant,
-                    database: Name,
+                    var deleteCollectionResponse = await ChromaClient.Collection.DeleteCollectionAsync(tenant: TenantName,
+                    database: DatabaseName,
                     collectionId: collection.Name.ToString());
 
                     Console.WriteLine($"Delete collection response: {deleteCollectionResponse}");
@@ -107,11 +115,11 @@ namespace ChromaDB.Library
 
         public async Task UpdateCollectionAsync(string oldCollectionName, string newCollectionName)
         {
-            Collection? oldCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: Tenant, database: Name, collectionId: oldCollectionName);
+            Collection? oldCollection = await ChromaClient.Collection.GetCollectionAsync(tenant: TenantName, database: DatabaseName, collectionId: oldCollectionName);
             if (oldCollection != null)
             {
-                await ChromaClient.Collection.UpdateCollectionAsync(tenant: Tenant,
-                database: Name,
+                await ChromaClient.Collection.UpdateCollectionAsync(tenant: TenantName,
+                database: DatabaseName,
                 collectionId: oldCollection.Id.ToString(),
                 request: new UpdateCollectionPayload
                 {
