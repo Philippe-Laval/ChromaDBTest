@@ -812,13 +812,13 @@ public class ChromaDBClient
     }
 
     /// <summary>
-    /// deleting items from a collection by id
+    /// Delete items from a collection by id.
     /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="ids"></param>
-    /// <param name="limit"></param>
-    /// <param name="database"></param>
-    /// <param name="tenant"></param>
+    /// <param name="collectionName">Name of the collection.</param>
+    /// <param name="ids">List of ids to delete.</param>
+    /// <param name="limit">Optional limit on the number of items to delete.</param>
+    /// <param name="database">Database name. Defaults to "default_database".</param>
+    /// <param name="tenant">Tenant name. Defaults to "default_tenant".</param>
     /// <returns></returns>
     public async Task CollectionDeleteAsync(string collectionName,
         IList<string> ids,
@@ -844,12 +844,12 @@ public class ChromaDBClient
     }
 
     /// <summary>
-    /// delete all items in the collection that match the where filter.
+    /// Delete all items in the collection that match the where filter.
     /// </summary>
-    /// <param name="collectionName"></param>
-    /// <param name="whereFilter"></param>
-    /// <param name="database"></param>
-    /// <param name="tenant"></param>
+    /// <param name="collectionName">Name of the collection.</param>
+    /// <param name="whereFilter">Filter to match items for deletion.</param>
+    /// <param name="database">Database name. Defaults to "default_database".</param>
+    /// <param name="tenant">Tenant name. Defaults to "default_tenant".</param>
     /// <returns></returns>
     public async Task CollectionDeleteAsync(string collectionName,
         WhereFilter whereFilter,

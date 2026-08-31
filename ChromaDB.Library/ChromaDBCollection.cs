@@ -97,5 +97,56 @@ namespace ChromaDB.Library
 
             return embedding;
         }
+
+
+        /// <summary>
+        /// Delete items from a collection by id.
+        /// </summary>
+        /// <param name="ids">List of ids to delete.</param>
+        /// <param name="limit">Optional limit on the number of items to delete.</param>
+        /// <returns></returns>
+        public async Task CollectionDeleteAsync(IList<string> ids,
+            int? limit)
+        {
+
+            DeleteCollectionRecordsPayloadVariant2 payloadVariant2 = new DeleteCollectionRecordsPayloadVariant2
+            {
+                Ids = ids,
+                Limit = limit
+            };
+
+            await _client.Record.CollectionDeleteAsync(tenant: Tenant,
+                database: Database,
+                collectionId: _collection.Id.ToString(),
+                request: new DeleteCollectionRecordsPayload
+                {
+                    DeleteCollectionRecordsPayloadVariant2 = payloadVariant2,
+                    RawWhereFields = null
+                });
+        }
+
+        /// <summary>
+        /// Delete all items in the collection that match the where filter.
+        /// </summary>
+        /// <param name="whereFilter">Filter to match items for deletion.</param>
+        /// <returns></returns>
+        public async Task CollectionDeleteAsync(WhereFilter whereFilter)
+        {
+            RawWhereFields rawWhereFields = new RawWhereFields
+            {
+                Where = whereFilter,
+                WhereDocument = null
+            };
+
+            await _client.Record.CollectionDeleteAsync(tenant: Tenant,
+                database: Database,
+                collectionId: _collection.Id.ToString(),
+                request: new DeleteCollectionRecordsPayload
+                {
+                    DeleteCollectionRecordsPayloadVariant2 = null,
+                    RawWhereFields = rawWhereFields
+                });
+        }
+
     }
 }
