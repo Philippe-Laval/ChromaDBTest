@@ -33,12 +33,12 @@ public class QueryResult : IEnumerable<ChromaDocument>
     /// <summary>
     /// Document contents
     /// </summary>
-    public IList<string>? Documents { get; set; }
+    public IList<string?>? Documents { get; set; }
 
     /// <summary>
     /// Document URIs (if available)
     /// </summary>
-    public IList<string>? Uris { get; set; }
+    public IList<string?>? Uris { get; set; }
     
 
     /// <summary>

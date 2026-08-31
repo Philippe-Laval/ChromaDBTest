@@ -283,8 +283,8 @@ public class ChromaDBClient
     /// <param name="collectionName">The name of the collection to query.</param>
     /// <param name="ids">If indicated, restrict the query to the list of ids.</param>
     /// <param name="include">If indicated, specify which related data to include in the query.</param>
-    /// <param name="Where">If indicated, restrict the query to the specified conditions in metadatas.</param>
-    /// <param name="WhereDocument">If indicated, restrict the query to the specified conditions in documents.</param>
+    /// <param name="where">If indicated, restrict the query to the specified conditions in metadatas.</param>
+    /// <param name="whereDocument">If indicated, restrict the query to the specified conditions in documents.</param>
     /// <param name="limit">If indicated, limit the number of results returned.</param>
     /// <param name="offset">If indicated, specify the number of results to skip.</param>
     /// <param name="tenant">The name of the tenant containing the database.</param>
@@ -293,8 +293,8 @@ public class ChromaDBClient
     public async Task<List<ChromaDocument>> CollectionGetAsync(string collectionName,
         List<string>? ids,
         List<Include>? include,
-        object? Where,
-        object? WhereDocument,
+        WhereFilter? where,
+        object? whereDocument,
         int? limit,
         int? offset,
         string database = "default_database",
@@ -315,13 +315,14 @@ public class ChromaDBClient
 
         RawWhereFields? rawWhereFields = null;
 
-        if (Where is not null || WhereDocument is not null)
+        if (where is not null || whereDocument is not null)
         {
-            // Handle the Where and WhereDocument conditions here
+            // Handle the where and whereDocument conditions here
             rawWhereFields = new RawWhereFields
             {
-                Where = Where,
-                WhereDocument = WhereDocument
+                // It is mandatory to convert the WhereFilter to a JsonElement for the RawWhereFields
+                Where = where?.ToJsonElement(),     
+                WhereDocument = whereDocument
             };
         }
 
@@ -488,8 +489,8 @@ public class ChromaDBClient
     /// <param name="include">Specifies which related data to include in the query.</param>
     /// <param name="ids">If indicated, restrict the query to the list of ids.</param>
     /// <param name="nResults">The number of nearest results to return for each query embedding.</param>
-    /// <param name="Where">If indicated, restrict the query to the specified conditions in metadatas.</param>
-    /// <param name="WhereDocument">If indicated, restrict the query to the specified conditions in documents.</param>
+    /// <param name="where">If indicated, restrict the query to the specified conditions in metadatas.</param>
+    /// <param name="whereDocument">If indicated, restrict the query to the specified conditions in documents.</param>
     /// <param name="limit">If indicated, limit the number of results returned.</param>
     /// <param name="offset">If indicated, specify the number of results to skip.</param>
     /// <param name="database">The name of the database containing the collection.</param>
@@ -500,8 +501,8 @@ public class ChromaDBClient
         IList<Include>? include,
         IList<string>? ids,
         int? nResults,
-        object? Where,
-        object? WhereDocument,
+        WhereFilter? where,
+        object? whereDocument,
         int? limit,
         int? offset,
         string database = "default_database",
@@ -528,13 +529,14 @@ public class ChromaDBClient
 
         RawWhereFields? rawWhereFields = null;
 
-        if (Where is not null || WhereDocument is not null)
+        if (where is not null || whereDocument is not null)
         {
-            // Handle the Where and WhereDocument conditions here
+            // Handle the where and whereDocument conditions here
             rawWhereFields = new RawWhereFields
             {
-                Where = Where,
-                WhereDocument = WhereDocument
+                // It is mandatory to convert the WhereFilter to a JsonElement for the RawWhereFields
+                Where = where?.ToJsonElement(),
+                WhereDocument = whereDocument
             };
         }
 
