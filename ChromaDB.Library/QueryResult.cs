@@ -60,6 +60,7 @@ public class QueryResult : IEnumerable<ChromaDbDocument>
             {
                 Id = Ids[i],
                 Embeddings = (Embeddings != null && i < Embeddings.Count) ? Embeddings[i] : null,
+                Distance = (Distances != null && i < Distances.Count) ? Distances[i] : null,
                 Text = (Documents != null && i < Documents.Count) ? Documents[i] : null,
                 Metadata = (Metadatas != null && i < Metadatas.Count) ? Metadatas[i] : null,
                 Uri = (Uris != null && i < Uris.Count) ? Uris[i] : null
@@ -84,6 +85,7 @@ public class QueryResult : IEnumerable<ChromaDbDocument>
         {
             Id = Ids[0],
             Embeddings = (Embeddings != null && Embeddings.Count > 0) ? Embeddings[0] : null,
+            Distance = (Distances != null && Distances.Count > 0) ? Distances[0] : null,
             Text = (Documents != null && Documents.Count > 0) ? Documents[0] : null,
             Metadata = (Metadatas != null && Metadatas.Count > 0) ? Metadatas[0] : null,
             Uri = (Uris != null && Uris.Count > 0) ? Uris[0] : null
@@ -102,6 +104,7 @@ public class QueryResult : IEnumerable<ChromaDbDocument>
             {
                 Id = Ids[i],
                 Embeddings = (Embeddings != null && i < Embeddings.Count) ? Embeddings[i] : null,
+                Distance = (Distances != null && i < Distances.Count) ? Distances[i] : null,
                 Text = (Documents != null && i < Documents.Count) ? Documents[i] : null,
                 Metadata = (Metadatas != null && i < Metadatas.Count) ? Metadatas[i] : null,
                 Uri = (Uris != null && i < Uris.Count) ? Uris[i] : null
