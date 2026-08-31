@@ -348,7 +348,7 @@ IList<IList<ChromaDbDocument>> listOfDocumentList =
 
 foreach (var documentList in listOfDocumentList)
 {
-    foreach (var document in documentList)
+    foreach (var document in documentList.OrderBy(d => d.Distance))
     {
         Console.WriteLine($"Document Id: {document.Id}");
         Console.WriteLine($"Document Content: {document.Text}");
