@@ -23,7 +23,7 @@ public class ChromaDbDocument
     /// <summary>
     /// Metadata associated with the document
     /// </summary>
-    public IDictionary<string, object>? Metadata { get; set; }
+    public IDictionary<string, object?>? Metadata { get; set; }
     
     /// <summary>
     /// Distance associated with the document

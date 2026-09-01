@@ -80,7 +80,7 @@ public class MetadataDictionaryConverter : JsonConverter<Dictionary<string, obje
             //TODO: Handle null property names if necessary
 
             reader.Read();
-            dictionary.Add(propertyName!, ExtractValue(ref reader));
+            dictionary.Add(propertyName!, ExtractValue(ref reader)!);
         }
 
         throw new JsonException("Expected EndObject token");

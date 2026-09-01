@@ -92,8 +92,7 @@ namespace ChromaDB.Library
                 QueryResult queryResult = new QueryResult
                 {
                     Ids = response.Ids,
-                    //Distances = response.Distances,
-                    Embeddings = response.Embeddings,
+                    Embeddings = (IList<IList<float>?>?) response.Embeddings,
                     Documents = response.Documents,
                     Metadatas = ConvertMetadatas(response.Metadatas),
                     Uris = response.Uris
@@ -112,33 +111,88 @@ namespace ChromaDB.Library
         /// null.</param>
         /// <returns>A list of dictionaries containing the converted metadata. Returns an empty list if <paramref name="Metadatas"/>
         /// is null.</returns>
-        private IList<IDictionary<string, object>> ConvertMetadatas(IList<Chroma.HashMap?>? Metadatas)
+        private IList<IDictionary<string, object?>?>? ConvertMetadatas(IList<Chroma.HashMap?>? Metadatas)
         {
-            var result = new List<IDictionary<string, object>>();
+            List<IDictionary<string, object?>?>? result = null;
 
             if (Metadatas != null)
             {
+                result = new List<IDictionary<string, object?>?>();
+
                 foreach (var metadata in Metadatas)
                 {
-                    Dictionary<string, object>? dict = null;
+                    Dictionary<string, object?>? dict = null;
 
                     if (metadata is not null)
                     {
-                        dict = new Dictionary<string, object>();
+                        dict = new Dictionary<string, object?>();
                         foreach (var kvp in metadata.AdditionalProperties)
                         {
-                            dict[kvp.Key] = kvp.Value;
+                            if (kvp.Value is JsonElement jsonElement)
+                            {
+                                dict[kvp.Key] = ConvertJsonElement(jsonElement);
+                            }
+                            else
+                            {
+                                dict[kvp.Key] = null;
+                            }
                         }
                     }
 
-                    if (dict is not null)
-                    {
-                        result.Add(dict);
-                    }
+                    result.Add(dict);
                 }
             }
 
             return result;
+        }
+
+
+        /// <summary>
+        /// Recursively converts a <see cref="JsonElement"/> into its closest .NET representation:
+        /// objects become <see cref="Dictionary{TKey, TValue}"/>, arrays become <see cref="List{T}"/>,
+        /// and primitives become their matching CLR types.
+        /// </summary>
+        /// <param name="element">The <see cref="JsonElement"/> to convert.</param>
+        /// <returns>The closest .NET representation of the <paramref name="element"/>.</returns>
+        private static object? ConvertJsonElement(JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    var dict = new Dictionary<string, object>();
+                    foreach (var property in element.EnumerateObject())
+                    {
+                        dict[property.Name] = ConvertJsonElement(property.Value)!;
+                    }
+                    return dict;
+
+                case JsonValueKind.Array:
+                    var list = new List<object?>();
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        list.Add(ConvertJsonElement(item));
+                    }
+                    return list;
+
+                case JsonValueKind.String:
+                    return element.GetString();
+
+                case JsonValueKind.Number:
+                    if (element.TryGetInt64(out var l))
+                    {
+                        return l;
+                    }
+                    return element.GetDouble();
+
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    return element.GetBoolean();
+
+                case JsonValueKind.Null:
+                case JsonValueKind.Undefined:
+                default:
+                    return null;
+            }
         }
 
         /// <summary>
