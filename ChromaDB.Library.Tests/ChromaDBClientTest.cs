@@ -268,5 +268,126 @@ namespace ChromaDB.Library.Tests
             }
         }
 
+        [TestMethod]
+        public async Task TestCollectionGetAsyncWithoutFilter()
+        {
+            await SetupCollection();
+        }
+
+        [TestMethod]
+        public async Task TestCollectionGetAsyncFilter()
+        {
+            ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
+
+            await SetupCollection();
+
+            // Include all fields in the result, but you can choose to include only the fields you need.
+            var include = new List<Include> { Include.Documents,
+                    Include.Embeddings,
+                    Include.Distances,
+                    Include.Metadatas,
+                    Include.Uris };
+
+            var whereFilter = new WhereFilter()
+                    .GreaterThan("page", 10);
+            JsonElement whereAsJsonElement = whereFilter.ToJsonElement();
+            string whereAsJson = JsonSerializer.Serialize(whereAsJsonElement);
+            // {"page":{"$gt":10}}
+            Assert.AreEqual("""{"page":{"$gt":10}}""", whereAsJson);
+
+            // Retrieve the documents from the collection to verify they were added correctly
+            var result = await chromaDBClient.CollectionGetAsync("collection10",
+                null, include, whereFilter, null, 10, 0,
+                "database1", "default_tenant");
+
+            Assert.IsNotNull(result);
+            Assert.HasCount(1, result);
+        }
+
+        private async Task SetupCollection()
+        {
+            ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
+
+            // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
+            await chromaDBClient.ResetAsync();
+
+            await chromaDBClient.CreateDatabaseAsync("database1", "default_tenant");
+            await chromaDBClient.GetOrCreateCollection("collection1", "database1", "default_tenant");
+
+            var ids = new List<string> { "id1", "id2" };
+
+            // Include all fields in the result, but you can choose to include only the fields you need.
+            var include = new List<Include> { Include.Documents,
+                    Include.Embeddings,
+                    Include.Distances,
+                    Include.Metadatas,
+                    Include.Uris };
+
+            var documents = new List<string?> { "This is a document about lemons", "This is a document about mangos" };
+            var uris = new List<string?> { "http://localhost/doc1", "http://localhost/doc2" };
+
+            // Fake embeddingsPayloadVariant1 for testing (384 dimensions)
+            FixedEmbeddingFunction embeddingFunction = new FixedEmbeddingFunction(384);
+            embeddingFunction.Value = 0.1f;
+
+            IList<float> embeddings1 = embeddingFunction.GenerateEmbeddings(documents[0]!);
+            embeddingFunction.Value = 0.2f;
+            IList<float> embeddings2 = embeddingFunction.GenerateEmbeddings(documents[1]!);
+
+            IList<IList<float>> embeddings = new List<IList<float>>
+            {
+                embeddings1,
+                embeddings2
+            };
+
+            Dictionary<string, object> meta1 = new Dictionary<string, object>
+            {
+                { "page", 5L },
+                { "book", "All about lemons" }
+            };
+
+            Dictionary<string, object> meta2 = new Dictionary<string, object>
+            {
+                { "page", 15L },
+                { "book", "All about mangos" }
+            };
+
+            IList<IDictionary<string, object>> metadatas = new List<IDictionary<string, object>>
+            {
+                meta1,
+                meta2
+            };
+
+            // Add two documents to the collection
+            await chromaDBClient.CollectionAddAsync("collection10",
+                ids, embeddings, documents, uris, metadatas,
+                "database1", "default_tenant");
+
+            // Retrieve the documents from the collection to verify they were added correctly
+            var result = await chromaDBClient.CollectionGetAsync("collection10",
+                null, include, null, null, 10, 0,
+                "database1", "default_tenant");
+
+            Assert.IsNotNull(result);
+            Assert.HasCount(2, result);
+
+            // Verify the retrieved documents match the added documents
+            for (int i = 0; i < result.Count; i++)
+            {
+                Assert.AreEqual(ids[i], result[i].Id);
+                Assert.AreEqual(documents[i], result[i].Text);
+                Assert.AreEqual(uris[i], result[i].Uri);
+
+                Assert.AreEqual(metadatas[i]["page"], result[i].Metadata!["page"]);
+                Assert.AreEqual(metadatas[i]["book"], result[i].Metadata!["book"]);
+
+                for (int j = 0; j < embeddings[i].Count; j++)
+                {
+                    Assert.AreEqual(embeddings[i][j], result[i].Embeddings![j], 1e-6, $"Embedding mismatch at index {j} for document {i}");
+                }
+            }
+        }
+
+
     }
 }
