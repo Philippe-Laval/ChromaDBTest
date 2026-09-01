@@ -246,10 +246,6 @@ string whereAsJson = JsonSerializer.Serialize(whereAsJsonElement);
 // {"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}
 Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
-
-
-
-
 // No restriction on ids, so we can pass null for the ids parameter.
 // {"where":{"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}}
 var result = await chromaDBClient.CollectionGetAsync("collection10", 
@@ -281,78 +277,3 @@ foreach (var documentList in listOfDocumentList)
         Console.WriteLine($"Document Uri: {document.Uri}");
     }
 }
-
-
-var client = TryAGIChromaTest.CreateClient();
-
-await TryAGIChromaTest.GetClientVersion(client);
-
-
-// Not working buy get same result than ChromaDB.http file
-//var myCollection = await TryAGIChromaTest.GetCollectionAsync();
-
-// Throws an exception if the collection does not exist, so we need to create it first.
-
-
-try
-{
-    var myCollection = await TryAGIChromaTest.GetOrCreateCollection("my_collection", client);
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"E: {ex.Message}");
-}
-
-var c1 = await TryAGIChromaTest.GetOrCreateCollection("my_collection1", client);
-var c2 = await TryAGIChromaTest.GetOrCreateCollection("my_collection2", client);
-var c3 = await TryAGIChromaTest.GetOrCreateCollection("my_collection3", client);
-
-
-var myCollection1 = await TryAGIChromaTest.GetCollectionAsync("my_collection1");
-var myCollection2 = await TryAGIChromaTest.GetCollectionAsync("my_collection2");
-var myCollection3 = await TryAGIChromaTest.GetCollectionAsync("my_collection3");
-
-await TryAGIChromaTest.TestCollectionAddAsync("my_collection1");
-await TryAGIChromaTest.TestCollectionAddAsync("my_collection2");
-await TryAGIChromaTest.TestCollectionAddAsync("my_collection3");
-
-await TryAGIChromaTest.TestCollectionGetAsync("my_collection1", client);
-await TryAGIChromaTest.TestCollectionGetAsync("my_collection2", client);
-await TryAGIChromaTest.TestCollectionGetAsync("my_collection3", client);
-
-
-await TryAGIChromaTest.TestCollectionQueryAsync("my_collection1");
-await TryAGIChromaTest.TestCollectionQueryAsync("my_collection2");
-await TryAGIChromaTest.TestCollectionQueryAsync("my_collection3");
-
-await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection1");
-await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection2");
-await TryAGIChromaTest.TestCollectionUpsertAsync("my_collection3");
-
-
-
-
-await TryAGIChromaTest.TestListingOfDatabases();
-await TryAGIChromaTest.TestCreationOfDatabase();
-await TryAGIChromaTest.TestDeleteCollectionAsync();
-
-count = await TryAGIChromaTest.TestCountCollectionsAsync();
-Console.WriteLine($"Collection count: {count}");
-
-await TryAGIChromaTest.TestCreateCollectionAsyncWithExistingCollection();
-
-
-
-// Not working yet.
-//await TryAGIChromaTest.TestCollectionSearchAsync();
-
-
-
-/*
- * Tests using the ChromaDB.Client library.
- */
-
-// For now ChromaDB.Client is using chroma api v1, so we need to use the v1 endpoint for testing.
-
-//await ChromaDBClientTest.Run1();
-//await ChromaDBClientTest.Run2();

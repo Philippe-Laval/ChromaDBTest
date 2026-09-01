@@ -269,13 +269,13 @@ namespace ChromaDB.Library.Tests
         }
 
         [TestMethod]
-        public async Task TestCollectionGetAsyncWithoutFilter()
+        public async Task TestCollectionGetAsync_WithoutFilter()
         {
             await SetupCollection();
         }
 
         [TestMethod]
-        public async Task TestCollectionGetAsyncFilter()
+        public async Task TestCollectionGetAsync_WithFilter()
         {
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
@@ -303,6 +303,92 @@ namespace ChromaDB.Library.Tests
             Assert.IsNotNull(result);
             Assert.HasCount(1, result);
         }
+
+        [TestMethod]
+        public async Task TestCollectionUpsertAsync()
+        {
+            ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
+
+            await SetupCollection();
+
+            // Changes to the existing collection, so we need to use the upsert method instead of add.
+
+            var ids = new List<string> { "id1", "id2" };
+
+            // Include all fields in the result, but you can choose to include only the fields you need.
+            var include = new List<Include> { Include.Documents,
+                    Include.Embeddings,
+                    Include.Distances,
+                    Include.Metadatas,
+                    Include.Uris };
+
+            var documents = new List<string?> { "This book is about lemons", "This book is about mangos" };
+            var uris = new List<string?> { "http://localhost/document1", "http://localhost/document2" };
+
+            // Fake embeddingsPayloadVariant1 for testing (384 dimensions)
+            FixedEmbeddingFunction embeddingFunction = new FixedEmbeddingFunction(384);
+            embeddingFunction.Value = 0.1f;
+
+            IList<float> embeddings1 = embeddingFunction.GenerateEmbeddings(documents[0]!);
+            embeddingFunction.Value = 0.2f;
+            IList<float> embeddings2 = embeddingFunction.GenerateEmbeddings(documents[1]!);
+
+            IList<IList<float>> embeddings = new List<IList<float>>
+            {
+                embeddings1,
+                embeddings2
+            };
+
+            var meta1 = new Dictionary<string, object>
+            {
+                { "page", 6L },
+                { "category", "Botanic books" },
+                { "book", "All about lemons" }
+            };
+
+            var meta2 = new Dictionary<string, object>
+            {
+                { "page", 16L },
+                { "category", "Botanic books" },
+                { "book", "All about mangos" }
+            };
+
+            IList<IDictionary<string, object>> metadatas = new List<IDictionary<string, object>>
+            {
+                meta1,
+                meta2
+            };
+
+            await chromaDBClient.CollectionUpsertAsync("collection1",
+                ids, embeddings, documents, uris, metadatas,
+                "database1", "default_tenant");
+
+            // Retrieve the documents from the collection to verify they were modified correctly
+            var result = await chromaDBClient.CollectionGetAsync("collection1",
+                null, include, null, null, 10, 0,
+                "database1", "default_tenant");
+
+            Assert.IsNotNull(result);
+            Assert.HasCount(2, result);
+
+            // Verify the retrieved documents match the added documents
+            for (int i = 0; i < result.Count; i++)
+            {
+                Assert.AreEqual(ids[i], result[i].Id);
+                Assert.AreEqual(documents[i], result[i].Text);
+                Assert.AreEqual(uris[i], result[i].Uri);
+
+                Assert.AreEqual(metadatas[i]["page"], result[i].Metadata!["page"]);
+                Assert.AreEqual(metadatas[i]["category"], result[i].Metadata!["category"]);
+                Assert.AreEqual(metadatas[i]["book"], result[i].Metadata!["book"]);
+
+                for (int j = 0; j < embeddings[i].Count; j++)
+                {
+                    Assert.AreEqual(embeddings[i][j], result[i].Embeddings![j], 1e-6, $"Embedding mismatch at index {j} for document {i}");
+                }
+            }
+        }
+
 
         private async Task SetupCollection()
         {
