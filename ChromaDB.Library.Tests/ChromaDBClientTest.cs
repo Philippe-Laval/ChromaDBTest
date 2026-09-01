@@ -78,6 +78,50 @@ namespace ChromaDB.Library.Tests
             Assert.AreEqual("default_database", databases[0].DatabaseName);
         }
 
+        [TestMethod]
+        public async Task TestCreateTenantAsync()
+        {
+            ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
+
+            // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
+            await chromaDBClient.ResetAsync();
+
+            ChromaDBTenant? chromaDBTenant= await chromaDBClient.CreateTenantAsync("tenant1");
+            Assert.IsNotNull(chromaDBTenant);
+
+            chromaDBTenant = await chromaDBClient.CreateTenantAsync("tenant1");
+            Assert.IsNull(chromaDBTenant);
+        }
+
+        [TestMethod]
+        public async Task TestGetTenantAsync()
+        {
+            ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
+
+            // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
+            await chromaDBClient.ResetAsync();
+
+            ChromaDBTenant? chromaDBTenant = await chromaDBClient.CreateTenantAsync("tenant1");
+            Assert.IsNotNull(chromaDBTenant);
+
+            chromaDBTenant = await chromaDBClient.GetTenantAsync("tenant1");
+            Assert.IsNotNull(chromaDBTenant);
+        }
+
+        [TestMethod]
+        public async Task TestGetOrCreateTenantAsync()
+        {
+            ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
+
+            // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
+            await chromaDBClient.ResetAsync();
+
+            ChromaDBTenant? chromaDBTenant = await chromaDBClient.GetOrCreateTenantAsync("tenant1");
+            Assert.IsNotNull(chromaDBTenant);
+
+            chromaDBTenant = await chromaDBClient.GetOrCreateTenantAsync("tenant1");
+            Assert.IsNotNull(chromaDBTenant);
+        }
 
         [TestMethod]
         public async Task TestCreateDatabaseAsync()
