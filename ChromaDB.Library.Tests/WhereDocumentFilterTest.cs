@@ -10,7 +10,7 @@ namespace ChromaDB.Library.Tests
     public sealed class WhereDocumentFilterTest
     {
         [TestMethod]
-        public void TestContains()
+        public void TestWhereDocument_Contains()
         {
             // all records whose document contains a search string
             var whereDocumentFilter1 = new WhereDocumentFilter()
@@ -22,7 +22,7 @@ namespace ChromaDB.Library.Tests
         }
 
         [TestMethod]
-        public void TestNotContains()
+        public void TestWhereDocument_NotContains()
         {
             // all records whose document contains a search string
             var whereDocumentFilter1 = new WhereDocumentFilter()
@@ -34,7 +34,7 @@ namespace ChromaDB.Library.Tests
         }
 
         [TestMethod]
-        public void TestRegex()
+        public void TestWhereDocument_Regex()
         {
             // records whose documents match the regex pattern for an email address
             var whereDocumentFilter2 = new WhereDocumentFilter()
@@ -46,7 +46,7 @@ namespace ChromaDB.Library.Tests
         }
 
         [TestMethod]
-        public void TestNotRegex()
+        public void TestWhereDocument_NotRegex()
         {
             // records whose documents match the regex pattern for an email address
             var whereDocumentFilter2 = new WhereDocumentFilter()
@@ -57,7 +57,7 @@ namespace ChromaDB.Library.Tests
         }
 
         [TestMethod]
-        public void TestAll()
+        public void TestWhereDocument_All()
         {
             // An $and operator will return results that match all the filters in the list
             var whereDocumentFilter3 = new WhereDocumentFilter()
@@ -75,7 +75,7 @@ namespace ChromaDB.Library.Tests
         }
 
         [TestMethod]
-        public void TestAny()
+        public void TestWhereDocument_Any()
         {
             // An $or operator will return results that match any of the filters in the list
             var whereDocumentFilter4 = new WhereDocumentFilter()
@@ -91,7 +91,7 @@ namespace ChromaDB.Library.Tests
         }
 
         [TestMethod]
-        public void TestOr()
+        public void TestWhereDocument_Or()
         {
             var whereDocumentFilter5 = new WhereDocumentFilter()
                 .Contains("search_string_1")
@@ -104,7 +104,7 @@ namespace ChromaDB.Library.Tests
         }
 
         [TestMethod]
-        public void TestAnd()
+        public void TestWhereDocument_And()
         {
             var whereDocumentFilter6 = new WhereDocumentFilter()
                 .Contains("search_string_1")
