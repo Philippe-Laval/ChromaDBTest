@@ -872,7 +872,7 @@ public class ChromaDBClient
     /// <summary>
     /// Delete items from a collection by id.
     /// </summary>
-    /// <param name="collectionName">Name of the collection.</param>
+    /// <param name="collectionName">CollectionName of the collection.</param>
     /// <param name="ids">List of ids to delete.</param>
     /// <param name="limit">Optional limit on the number of items to delete.</param>
     /// <param name="database">Database name. Defaults to "default_database".</param>
