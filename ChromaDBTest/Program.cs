@@ -246,85 +246,8 @@ string whereAsJson = JsonSerializer.Serialize(whereAsJsonElement);
 // {"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}
 Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
-var whereFilter2 = new WhereFilter()
-           .Equals("category", "Botanic books")
-           .GreaterThan("page", 10)
-           .In("language", new List<string> { "en", "fr" });
-whereAsJsonElement = whereFilter2.ToJsonElement();
-whereAsJson = JsonSerializer.Serialize(whereAsJsonElement);
-// {"$and":[{"category":"Botanic books"},{"page":{"$gt":10}},{"language":{"$in":["en","fr"]}}]}
-Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
-
-var whereFilter3 = new WhereFilter()
-           .Equals("published", true)
-           .Any(
-               new WhereFilter().Equals("language", "en"),
-               new WhereFilter().Equals("language", "fr"));
-whereAsJsonElement = whereFilter3.ToJsonElement();
-whereAsJson = JsonSerializer.Serialize(whereAsJsonElement);
-// {"$and":[{"published":true},{"$or":[{"$and":[{"language":"en"}]},{"$and":[{"language":"fr"}]}]}]}
-Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
 
-
-// all records whose document contains a search string
-var whereDocumentFilter1 = new WhereDocumentFilter()
-    .Contains("search string");
-JsonElement whereDocumentAsJsonElement = whereDocumentFilter1.ToJsonElement();
-string whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
-// {"$and":[{"$contains":"search string"}]}
-Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
-
-// records whose documents match the regex pattern for an email address
-var whereDocumentFilter2 = new WhereDocumentFilter()
-    .Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-whereDocumentAsJsonElement = whereDocumentFilter2.ToJsonElement();
-whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
-// {"$and":[{"$regex":"^[a-zA-Z0-9._%\u002B-]\u002B@[a-zA-Z0-9.-]\u002B\\.[a-zA-Z]{2,}$"}]}
-Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
-
-// An $and operator will return results that match all the filters in the list
-var whereDocumentFilter3 = new WhereDocumentFilter()
-    .Or()
-    .NotContains("search_string_2")
-    .NotRegex("[0-9]+")
-    .All(
-        new WhereDocumentFilter().Contains("search_string_1"),
-        new WhereDocumentFilter().Regex("[a-z]+")
-    );
-whereDocumentAsJsonElement = whereDocumentFilter3.ToJsonElement();
-whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
-// {"$or":[{"$not_contains":"search_string_2"},{"$not_regex":"[0-9]\u002B"},{"$and":[{"$and":[{"$contains":"search_string_1"}]},{"$and":[{"$regex":"[a-z]\u002B"}]}]}]}
-Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
-
-// An $or operator will return results that match any of the filters in the list
-var whereDocumentFilter4 = new WhereDocumentFilter()
-    .Regex("[a-z]+")
-    .NotRegex("[0-9]+")
-    .Any(
-        new WhereDocumentFilter().Contains("search_string_1"), 
-        new WhereDocumentFilter().NotContains("search_string_2")
-    );
-whereDocumentAsJsonElement = whereDocumentFilter4.ToJsonElement();
-whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
-Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
-
-var whereDocumentFilter5 = new WhereDocumentFilter()
-    .Contains("search_string_1")
-    .Or()
-    .NotContains("search_string_2");
-whereDocumentAsJsonElement = whereDocumentFilter5.ToJsonElement();
-whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
-// {"$or":[{"$contains":"search_string_1"},{"$not_contains":"search_string_2"}]}
-Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
-
-var whereDocumentFilter6 = new WhereDocumentFilter()
-    .Contains("search_string_1")
-    .Regex("[a-z]+");
-whereDocumentAsJsonElement = whereDocumentFilter6.ToJsonElement();
-whereDocumentAsJson = JsonSerializer.Serialize(whereDocumentAsJsonElement);
-// {"$and":[{"$contains":"search_string_1"},{"$regex":"[a-z]\u002B"}]}
-Console.WriteLine($"Where Document Filter as JSON: {whereDocumentAsJson}");
 
 
 // No restriction on ids, so we can pass null for the ids parameter.

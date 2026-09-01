@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="../Chroma/src/libs/Chroma/Chroma.csproj" />
+  <Project Path="ChromaDB.Library.Tests/ChromaDB.Library.Tests.csproj" Id="2f2d4026-cffd-4625-a21c-600229740f2f" />
   <Project Path="ChromaDB.Library/ChromaDB.Library.csproj" Id="da32313a-b2fd-44c2-8770-af7893ccd3a8" />
   <Project Path="ChromaDBTest/ChromaDBTest.csproj" />
 </Solution>
