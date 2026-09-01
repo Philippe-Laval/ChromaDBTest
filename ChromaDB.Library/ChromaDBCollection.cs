@@ -13,10 +13,10 @@ namespace ChromaDB.Library
         public IEmbeddingFunction? EmbeddingFunction { get; set; }
 
         public Guid Id => _collection.Id;
-        public string Name => _collection.Name;
+        public string CollectionName => _collection.Name;
         public int? Dimension => _collection.Dimension;
-        public string Database => _collection.Database;
-        public string Tenant => _collection.Tenant;
+        public string CollectionDatabase => _collection.Database;
+        public string CollectionTenant => _collection.Tenant;
 
         public ChromaDBCollection(Collection collection, ChromaClient client)
         {
@@ -44,8 +44,8 @@ namespace ChromaDB.Library
             List<ChromaDbDocument> result = new List<ChromaDbDocument>();
 
             // Get our collection
-            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: Tenant,
-                 database: Database,
+            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: CollectionTenant,
+                 database: CollectionDatabase,
                  request: new CreateCollectionPayload
                  {
                      Name = _collection.Name,
@@ -82,8 +82,8 @@ namespace ChromaDB.Library
                 RawWhereFields = rawWhereFields
             };
 
-            GetResponse response = await _client.Record.CollectionGetAsync(tenant: Tenant,
-                database: Database,
+            GetResponse response = await _client.Record.CollectionGetAsync(tenant: CollectionTenant,
+                database: CollectionDatabase,
                 collectionId: _collection.Id.ToString(),
                 request: requestPayload);
 
@@ -164,8 +164,8 @@ namespace ChromaDB.Library
             int? offset)
         {
             // Get our collection
-            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: Tenant,
-                  database: Database,
+            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: CollectionTenant,
+                  database: CollectionDatabase,
                   request: new CreateCollectionPayload
                   {
                       Name = _collection.Name,
@@ -202,8 +202,8 @@ namespace ChromaDB.Library
                 RawWhereFields = rawWhereFields
             };
 
-            QueryResponse queryResponse = await _client.Record.CollectionQueryAsync(tenant: Tenant,
-                database: Database,
+            QueryResponse queryResponse = await _client.Record.CollectionQueryAsync(tenant: CollectionTenant,
+                database: CollectionDatabase,
                 collectionId: _collection.Id.ToString(),
                 request: queryRequestPayload,
                 limit: limit,
@@ -293,8 +293,8 @@ namespace ChromaDB.Library
             };
 
             // Get the collection where we want to add records
-            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: Tenant,
-                  database: Database,
+            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: CollectionTenant,
+                  database: CollectionDatabase,
                   request: new CreateCollectionPayload
                   {
                       Name = _collection.Name,
@@ -304,8 +304,8 @@ namespace ChromaDB.Library
                   });
 
             // Add records in the collection
-            var response = await _client.Record.CollectionAddAsync(tenant: Tenant,
-                database: Database,
+            var response = await _client.Record.CollectionAddAsync(tenant: CollectionTenant,
+                database: CollectionDatabase,
                 collectionId: _collection.Id.ToString(),
                 request: addCollectionRecordsPayload);
         }
@@ -362,8 +362,8 @@ namespace ChromaDB.Library
             };
 
             // Get our collection
-            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: Tenant,
-                  database: Database,
+            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: CollectionTenant,
+                  database: CollectionDatabase,
                   request: new CreateCollectionPayload
                   {
                       Name = _collection.Name,
@@ -373,8 +373,8 @@ namespace ChromaDB.Library
                   });
 
             // Upsert records in the collection
-            await _client.Record.CollectionUpsertAsync(tenant: Tenant,
-                database: Database,
+            await _client.Record.CollectionUpsertAsync(tenant: CollectionTenant,
+                database: CollectionDatabase,
                 collectionId: _collection.Id.ToString(),
                 request: upsertPayload);
         }
@@ -431,8 +431,8 @@ namespace ChromaDB.Library
             };
 
             // Get our collection
-            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: Tenant,
-                  database: Database,
+            Collection collection = await _client.Collection.CreateCollectionAsync(tenant: CollectionTenant,
+                  database: CollectionDatabase,
                   request: new CreateCollectionPayload
                   {
                       Name = _collection.Name,
@@ -442,8 +442,8 @@ namespace ChromaDB.Library
                   });
 
             // Update records in the collection
-            await _client.Record.CollectionUpdateAsync(tenant: Tenant,
-               database: Database,
+            await _client.Record.CollectionUpdateAsync(tenant: CollectionTenant,
+               database: CollectionDatabase,
                collectionId: _collection.Id.ToString(),
                request: updatePayload);
         }
@@ -464,8 +464,8 @@ namespace ChromaDB.Library
                 Limit = limit
             };
 
-            await _client.Record.CollectionDeleteAsync(tenant: Tenant,
-                database: Database,
+            await _client.Record.CollectionDeleteAsync(tenant: CollectionTenant,
+                database: CollectionDatabase,
                 collectionId: _collection.Id.ToString(),
                 request: new DeleteCollectionRecordsPayload
                 {
@@ -487,8 +487,8 @@ namespace ChromaDB.Library
                 WhereDocument = null
             };
 
-            await _client.Record.CollectionDeleteAsync(tenant: Tenant,
-                database: Database,
+            await _client.Record.CollectionDeleteAsync(tenant: CollectionTenant,
+                database: CollectionDatabase,
                 collectionId: _collection.Id.ToString(),
                 request: new DeleteCollectionRecordsPayload
                 {

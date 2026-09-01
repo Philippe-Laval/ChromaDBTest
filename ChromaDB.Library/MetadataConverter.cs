@@ -22,7 +22,7 @@ internal static class MetadataConverter
     /// <summary>
     /// Serialize metadata dictionary to JSON string that's compatible with ChromaDB's Rust backend
     /// </summary>
-    public static string SerializeMetadata(Dictionary<string, object> metadata)
+    public static string? SerializeMetadata(Dictionary<string, object> metadata)
     {
         if (metadata == null)
             return null;
@@ -33,19 +33,19 @@ internal static class MetadataConverter
     /// <summary>
     /// Deserialize JSON string to metadata dictionary
     /// </summary>
-    public static Dictionary<string, object> DeserializeMetadata(string json)
+    public static Dictionary<string, object?>? DeserializeMetadata(string json)
     {
         if (string.IsNullOrEmpty(json))
-            return new Dictionary<string, object>();
+            return new Dictionary<string, object?>();
 
         try
         {
-            return JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+            return JsonSerializer.Deserialize<Dictionary<string, object?>>(json);
         }
         catch
         {
             // Fall back to empty dictionary on parse error
-            return new Dictionary<string, object>();
+            return new Dictionary<string, object?>();
         }
     }
 }
@@ -99,7 +99,7 @@ public class MetadataDictionaryConverter : JsonConverter<Dictionary<string, obje
         writer.WriteEndObject();
     }
 
-    private static object ExtractValue(ref Utf8JsonReader reader)
+    private static object? ExtractValue(ref Utf8JsonReader reader)
     {
         switch (reader.TokenType)
         {

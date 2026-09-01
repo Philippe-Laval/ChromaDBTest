@@ -47,7 +47,7 @@ namespace ChromaDBTest
         {
             client ??= CreateClient();
 
-            //var response = await client.Database.CreateDatabaseAsync("default_tenant", "database1");
+            //var response = await client.CollectionDatabase.CreateDatabaseAsync("default_tenant", "database1");
 
             try
             {
@@ -75,7 +75,7 @@ namespace ChromaDBTest
                 var databases = await client.Database.ListDatabasesAsync("default_tenant");
                 foreach (var database in databases)
                 {
-                    Console.WriteLine($"Database: {database.Name}");
+                    Console.WriteLine($"CollectionDatabase: {database.Name}");
                 }
             }
             catch (Exception ex)
@@ -253,7 +253,7 @@ namespace ChromaDBTest
                 Ids = new List<string> { "id3", "id4" },
                 Embeddings = embeddingsPayload,
                 // optional fields
-                Documents = new List<string> { "This is a document about lemons", "This is a document about mangos" }
+                Documents = new List<string?> { "This is a document about lemons", "This is a document about mangos" }
             };
 
             // Get the collection where we want to add records
@@ -344,7 +344,7 @@ namespace ChromaDBTest
             {
                 Embeddings = embeddings,
                 Ids = new List<string> { "id1", "id2" },
-                Documents = new List<string> { "This is a document about nice pineapple", "This is a document about juicy oranges" }
+                Documents = new List<string?> { "This is a document about nice pineapple", "This is a document about juicy oranges" }
             };
 
             // Get our collection

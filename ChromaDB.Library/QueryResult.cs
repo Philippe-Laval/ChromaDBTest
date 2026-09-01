@@ -28,7 +28,7 @@ public class QueryResult : IEnumerable<ChromaDbDocument>
     /// <summary>
     /// Document metadata
     /// </summary>
-    public IList<IDictionary<string, object>?>? Metadatas { get; set; }
+    public IList<IDictionary<string, object?>?>? Metadatas { get; set; }
 
     /// <summary>
     /// Document contents

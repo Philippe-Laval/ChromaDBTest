@@ -71,7 +71,7 @@ await chromaDBClient.UpdateTenantAsync("Tenant3", "Tenant4");
 var databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
 foreach (var db in databases)
 {
-    Console.WriteLine($"Database: {db.Id} {db.DatabaseName} {db.TenantName}");
+    Console.WriteLine($"CollectionDatabase: {db.Id} {db.DatabaseName} {db.TenantName}");
 }
 
 if (!databases.Any(db => db.DatabaseName == "database1"))
@@ -101,7 +101,7 @@ if (databases.Any(db => db.DatabaseName == "database3"))
 databases = await chromaDBClient.ListDatabasesAsync();
 foreach (var db in databases)
 {
-    Console.WriteLine($"Database: {db.Id} {db.DatabaseName} {db.TenantName}");
+    Console.WriteLine($"CollectionDatabase: {db.Id} {db.DatabaseName} {db.TenantName}");
 }
 
 // Count collections in each database
@@ -114,7 +114,7 @@ Console.WriteLine($"Collection count: {count}");
 var collections = await chromaDBClient.ListCollectionsAsync("database1", "default_tenant");
 foreach (var collection in collections)
 {
-    Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
+    Console.WriteLine($"Collection: {collection.CollectionName} {collection.Dimension} {collection.CollectionDatabase} {collection.CollectionTenant}");
 }
 
 var database1 = databases.FirstOrDefault(db => db.DatabaseName == "database1");
@@ -133,7 +133,7 @@ if (database1 != null)
     var collectionDb1s = await database1.ListCollectionsAsync();
     foreach (var collection in collectionDb1s)
     {
-        Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
+        Console.WriteLine($"Collection: {collection.CollectionName} {collection.Dimension} {collection.CollectionDatabase} {collection.CollectionTenant}");
     }
 }
 
@@ -150,7 +150,7 @@ if (database2 != null)
     var collectionDb2s = await database2.ListCollectionsAsync();
     foreach (var collection in collectionDb2s)
     {
-        Console.WriteLine($"Collection: {collection.Name} {collection.Dimension} {collection.Database} {collection.Tenant}");
+        Console.WriteLine($"Collection: {collection.CollectionName} {collection.Dimension} {collection.CollectionDatabase} {collection.CollectionTenant}");
     }
 }
 
