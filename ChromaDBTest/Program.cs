@@ -257,7 +257,7 @@ foreach (var document in result)
     Console.WriteLine($"Document Id: {document.Id}");
     Console.WriteLine($"Document Content: {document.Text}");
     Console.WriteLine($"Document Embedding: {string.Join(", ", document.Embeddings ?? new List<float>())}");
-    Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object>())}");
+    Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object?>())}");
     Console.WriteLine($"Document Uri: {document.Uri}");
 }
 
@@ -273,7 +273,7 @@ foreach (var documentList in listOfDocumentList)
         Console.WriteLine($"Document Content: {document.Text}");
         Console.WriteLine($"Document Distance: {document.Distance}");
         Console.WriteLine($"Document Embedding: {string.Join(", ", document.Embeddings ?? new List<float>())}");
-        Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object>())}");
+        Console.WriteLine($"Document Metadata: {string.Join(", ", document.Metadata ?? new Dictionary<string, object?>())}");
         Console.WriteLine($"Document Uri: {document.Uri}");
     }
 }
