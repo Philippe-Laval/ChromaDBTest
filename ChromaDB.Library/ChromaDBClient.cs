@@ -215,7 +215,8 @@ public class ChromaDBClient
     /// <param name="cancellationToken">Jeton utilisé pour annuler l’opération asynchrone.</param>
     /// <returns>Instance de <c>ChromaDBDatabase</c> correspondant à la base de données créée si l’opération réussit ; sinon <see langword="null"/>.</returns>
     public async Task<ChromaDBDatabase?> CreateDatabaseAsync(string tenant,
-        string databaseName, CancellationToken cancellationToken = default)
+        string databaseName, 
+        CancellationToken cancellationToken = default)
     {
         ChromaDBDatabase? chromaDBDatabase = null;
 
@@ -251,7 +252,6 @@ public class ChromaDBClient
             Console.WriteLine($"Error deleting a database: {ex.Message}");
         }
     }
-
 
     /// <summary>
     /// 
