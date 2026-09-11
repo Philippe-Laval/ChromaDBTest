@@ -10,6 +10,9 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChromaDB.Library;
 
+// Launch chroma server with the following command in the terminal:
+// cd C:\Users\philippe.laval
+// chroma run C:\Users\philippe.laval\single_node_full.yaml
 
 public class ChromaDBClient
 {
