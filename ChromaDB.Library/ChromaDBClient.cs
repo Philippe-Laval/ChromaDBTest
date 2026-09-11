@@ -331,16 +331,39 @@ public class ChromaDBClient
     }
 
     /// <summary>
+    /// Setup the collection to use the specified distance.
+    /// Other parameters will use their default values.
+    /// </summary>
+    /// <param name="space">The distance to use in the collection</param>
+    /// <returns></returns>
+    public static CollectionConfiguration SetupCollectionConfiguration(Chroma.Space space = Chroma.Space.Cosine)
+    {
+        Chroma.EmbeddingFunctionConfiguration? chromaEmbeddingFunction = null;
+        Chroma.HnswConfiguration? chromaHnsw = new HnswConfiguration
+        {
+            Space = space
+        };
+        Chroma.SpannConfiguration? chromaSpann = null;
+        var collectionConfiguration = new CollectionConfiguration(chromaEmbeddingFunction, chromaHnsw, chromaSpann);
+        return collectionConfiguration;
+    }
+
+    /// <summary>
     /// Get or create a collection by its name. If the collection does not exist, it will be created.
     /// </summary>
     /// <param name="tenant">The tenant name (for example : "default_tenant").</param>
     /// <param name="database">The name of the database containing the collection (for example : "default_database").</param>
     /// <param name="collectionName">The name of the collection to retrieve or create.</param>
+    /// <param name="collectionConfiguration">Optional configuration for the collection. If not provided, default configuration will be used.</param>
+    /// <param name="collectionMetadata">Optional metadata for the collection.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>The collection if found or created.</returns>
     public async Task<ChromaDBCollection> GetOrCreateCollection(string tenant,
         string database,
-        string collectionName, CancellationToken cancellationToken = default)
+        string collectionName,
+        CollectionConfiguration? collectionConfiguration = null,
+        Chroma.HashMap? collectionMetadata = null,
+        CancellationToken cancellationToken = default)
     {
         Collection collection = await ChromaClient.Collection.CreateCollectionAsync(tenant: tenant,
             database: database,
@@ -348,8 +371,8 @@ public class ChromaDBClient
             {
                 Name = collectionName,
                 GetOrCreate = true,
-                Metadata = null,
-                Configuration = null
+                Metadata = collectionMetadata,
+                Configuration = collectionConfiguration
             }, cancellationToken: cancellationToken);
 
         return new ChromaDBCollection(collection, ChromaClient);

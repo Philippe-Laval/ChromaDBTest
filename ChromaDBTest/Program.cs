@@ -90,7 +90,7 @@ if (!databases.Any(db => db.DatabaseName == "database3"))
 }
 
 // Refresh the list of databases after creation
-databases = await chromaDBClient.ListDatabasesAsync();
+databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
 
 if (databases.Any(db => db.DatabaseName == "database3"))
 {
@@ -98,7 +98,7 @@ if (databases.Any(db => db.DatabaseName == "database3"))
 }
 
 // Refresh the list of databases after deletion
-databases = await chromaDBClient.ListDatabasesAsync();
+databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
 foreach (var db in databases)
 {
     Console.WriteLine($"CollectionDatabase: {db.Id} {db.DatabaseName} {db.TenantName}");
@@ -201,11 +201,8 @@ IList<IDictionary<string, object>> metadatas = new List<IDictionary<string, obje
     meta2
 };
 
-await chromaDBClient.CollectionAddAsync("collection10", 
-    ids, embeddings, documents, uris, metadatas,
-    "database1", "default_tenant");
-
-
+await chromaDBClient.CollectionAddAsync("default_tenant", "database1", "collection10", 
+    ids, embeddings, documents, uris, metadatas);
 
 // Changes to the existing collection, so we need to use the upsert method instead of add.
 documents = new List<string?> { "This book is about lemons", "This book is about mangos" };
@@ -230,9 +227,8 @@ metadatas = new List<IDictionary<string, object>>
     meta2
 };
 
-await chromaDBClient.CollectionUpsertAsync("collection10",
-    ids, embeddings, documents, uris, metadatas,
-    "database1", "default_tenant");
+await chromaDBClient.CollectionUpsertAsync("default_tenant", "database1", "collection10",
+    ids, embeddings, documents, uris, metadatas);
 
 
 
@@ -248,9 +244,8 @@ Console.WriteLine($"Where Filter as JSON: {whereAsJson}");
 
 // No restriction on ids, so we can pass null for the ids parameter.
 // {"where":{"$and":[{"category":"Botanic books"},{"page":{"$gt":10}}]}}
-var result = await chromaDBClient.CollectionGetAsync("collection10", 
-    null, include, whereFilter, null, 10, 0,
-    "database1", "default_tenant");
+var result = await chromaDBClient.CollectionGetAsync("default_tenant", "database1", "collection10", 
+    null, include, whereFilter, null, 10, 0);
 
 foreach (var document in result)
 {
@@ -262,8 +257,8 @@ foreach (var document in result)
 }
 
 IList<IList<ChromaDbDocument>> listOfDocumentList = 
-    await chromaDBClient.CollectionQueryAsync("collection10", embeddings, include, null, 2, null, null, 10, 0,
-    "database1", "default_tenant");
+    await chromaDBClient.CollectionQueryAsync("default_tenant", "database1", "collection10", 
+    embeddings, include, null, 2, null, null, 10, 0);
 
 foreach (var documentList in listOfDocumentList)
 {

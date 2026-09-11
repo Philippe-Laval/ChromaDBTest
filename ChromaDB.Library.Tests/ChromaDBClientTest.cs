@@ -212,39 +212,52 @@ namespace ChromaDB.Library.Tests
             await chromaDBClient.ResetAsync(cancellationToken);
 
 
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", cancellationToken);
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", 
+                cancellationToken: cancellationToken);
 
             // Count collections in each database
-            int count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1", cancellationToken);
+            int count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1", 
+                cancellationToken: cancellationToken);
             Assert.AreEqual(0, count);
 
 
-            var collections = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", cancellationToken);
+            var collections = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", 
+                cancellationToken: cancellationToken);
             Assert.IsNotNull(collections);
             Assert.IsEmpty(collections);
 
 
-            var c1 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", cancellationToken);
-            var c2 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection2", cancellationToken);
+            var c1 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", 
+                collectionConfiguration: ChromaDBClient.SetupCollectionConfiguration(Chroma.Space.Cosine),
+                cancellationToken: cancellationToken);
+            var c2 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection2", 
+                collectionConfiguration: ChromaDBClient.SetupCollectionConfiguration(Chroma.Space.Cosine),
+                cancellationToken: cancellationToken);
 
-            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1", cancellationToken);
+            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1",
+                cancellationToken: cancellationToken);
             Assert.AreEqual(2, count);
 
-            var collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", cancellationToken);
+            var collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", 
+                cancellationToken: cancellationToken);
             Assert.IsNotNull(collectionDb1s);
             Assert.HasCount(2, collectionDb1s);
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection1"));
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection2"));
 
-            var myCollection = await chromaDBClient.GetCollectionAsync("default_tenant", "database1", "collection2", cancellationToken);
+            var myCollection = await chromaDBClient.GetCollectionAsync("default_tenant", "database1", "collection2", 
+                cancellationToken: cancellationToken);
             Assert.IsNotNull(myCollection);
 
-            await chromaDBClient.DeleteCollectionAsync("default_tenant", "database1", "collection2", cancellationToken);
+            await chromaDBClient.DeleteCollectionAsync("default_tenant", "database1", "collection2", 
+                cancellationToken: cancellationToken);
 
-            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1", cancellationToken);
+            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1", 
+                cancellationToken: cancellationToken);
             Assert.AreEqual(1, count);
 
-            collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", cancellationToken);
+            collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", 
+                cancellationToken: cancellationToken);
             Assert.IsNotNull(collectionDb1s);
             Assert.HasCount(1, collectionDb1s);
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection1"));
@@ -265,7 +278,9 @@ namespace ChromaDB.Library.Tests
             await chromaDBClient.ResetAsync(cancellationToken);
 
             await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", cancellationToken);
-            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", cancellationToken);
+            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", 
+                collectionConfiguration: ChromaDBClient.SetupCollectionConfiguration(Chroma.Space.Cosine),
+                cancellationToken: cancellationToken);
 
             // Include all fields in the result, but you can choose to include only the fields you need.
             var include = new List<Include> { Include.Documents,
@@ -519,7 +534,6 @@ namespace ChromaDB.Library.Tests
             }
         }
 
-
         private async Task SetupCollection()
         {
             CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -530,8 +544,13 @@ namespace ChromaDB.Library.Tests
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
             await chromaDBClient.ResetAsync(cancellationToken);
 
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", cancellationToken);
-            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", cancellationToken);
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", 
+                cancellationToken: cancellationToken);
+
+            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", 
+                collectionConfiguration: ChromaDBClient.SetupCollectionConfiguration(Chroma.Space.Cosine),
+                collectionMetadata: null,
+                cancellationToken: cancellationToken);
 
             var ids = new List<string> { "id1", "id2" };
 
