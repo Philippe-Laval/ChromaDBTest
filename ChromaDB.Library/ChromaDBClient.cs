@@ -14,6 +14,24 @@ namespace ChromaDB.Library;
 // cd C:\Users\philippe.laval
 // chroma run C:\Users\philippe.laval\single_node_full.yaml
 
+// ChromaDB Defaults to L2 Distance — Why that might not be the best choice
+// https://razikus.substack.com/p/chromadb-defaults-to-l2-distance-why-that-might-not-be-the-best-choice-ac3d47461245
+
+// https://docs.trychroma.com/docs/collections/configure
+/* "cosine" or "ip" or "l2"
+ * 
+openai_collection = client.create_collection(
+    name="my_openai_collection",
+    embedding_function=OpenAIEmbeddingFunction(
+        model_name="text-embedding-3-small"
+    ),
+    configuration={"hnsw": {"space": "cosine"}}
+)
+*/
+
+
+
+
 public class ChromaDBClient
 {
     public ChromaClient ChromaClient { get; private set; }
@@ -580,7 +598,8 @@ public class ChromaDBClient
         int? limit,
         int? offset,
         string database = "default_database",
-        string tenant = "default_tenant")
+        string tenant = "default_tenant",
+        CancellationToken cancellationToken = default)
     {
         List<IList<ChromaDbDocument>> result = new List<IList<ChromaDbDocument>>();
 
@@ -593,7 +612,8 @@ public class ChromaDBClient
                   GetOrCreate = true,
                   Metadata = null,
                   Configuration = null
-              });
+              },
+              cancellationToken: cancellationToken);
 
         QueryRequestPayloadVariant2 queryRequestPayloadVariant2 = new QueryRequestPayloadVariant2
         {
@@ -623,13 +643,13 @@ public class ChromaDBClient
             RawWhereFields = rawWhereFields
         };
 
-        QueryResponse queryResponse = await ChromaClient.Record.CollectionQueryAsync(tenant: "default_tenant",
-            database: "default_database",
+        QueryResponse queryResponse = await ChromaClient.Record.CollectionQueryAsync(tenant: tenant,
+            database: database,
             collectionId: collection.Id.ToString(),
             request: queryRequestPayload,
             limit: limit,
-            offset: offset
-            );
+            offset: offset,
+            cancellationToken: cancellationToken);
 
         if (queryResponse != null)
         {
