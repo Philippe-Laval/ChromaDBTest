@@ -138,13 +138,13 @@ namespace ChromaDB.Library.Tests
             Assert.AreEqual("default_database", databases[0].DatabaseName);
 
 
-            await chromaDBClient.CreateDatabaseAsync("database1", "default_tenant");
-            await chromaDBClient.CreateDatabaseAsync("database2", "default_tenant");
-            await chromaDBClient.CreateDatabaseAsync("database3", "default_tenant");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database2");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database3");
 
 
             // Refresh the list of databases after creation
-            databases = await chromaDBClient.ListDatabasesAsync();
+            databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
             Assert.HasCount(4, databases);
             Assert.IsTrue(databases.Any(db => db.DatabaseName == "database1"));
             Assert.IsTrue(databases.Any(db => db.DatabaseName == "database2"));
@@ -166,13 +166,13 @@ namespace ChromaDB.Library.Tests
             Assert.AreEqual("default_database", databases[0].DatabaseName);
             Assert.IsFalse(databases.Any(db => db.DatabaseName == "database3"));
 
-            await chromaDBClient.CreateDatabaseAsync("database3", "default_tenant");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database3");
 
             databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
             Assert.IsNotNull(databases);
             Assert.IsTrue(databases.Any(db => db.DatabaseName == "database3"));
 
-            await chromaDBClient.DeleteDatabaseAsync("database3", "default_tenant");
+            await chromaDBClient.DeleteDatabaseAsync("default_tenant", "database3");
 
             databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
             Assert.IsNotNull(databases);
@@ -188,39 +188,39 @@ namespace ChromaDB.Library.Tests
             await chromaDBClient.ResetAsync();
 
 
-            await chromaDBClient.CreateDatabaseAsync("database1", "default_tenant");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1");
 
             // Count collections in each database
-            int count = await chromaDBClient.CountCollectionsAsync("database1", "default_tenant");
+            int count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1");
             Assert.AreEqual(0, count);
 
 
-            var collections = await chromaDBClient.ListCollectionsAsync("database1", "default_tenant");
+            var collections = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1");
             Assert.IsNotNull(collections);
             Assert.IsEmpty(collections);
 
 
-            var c1 = await chromaDBClient.GetOrCreateCollection("collection1", "database1", "default_tenant");
-            var c2 = await chromaDBClient.GetOrCreateCollection("collection2", "database1", "default_tenant");
+            var c1 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1");
+            var c2 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection2");
 
-            count = await chromaDBClient.CountCollectionsAsync("database1", "default_tenant");
+            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1");
             Assert.AreEqual(2, count);
 
-            var collectionDb1s = await chromaDBClient.ListCollectionsAsync("database1", "default_tenant");
+            var collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1");
             Assert.IsNotNull(collectionDb1s);
             Assert.HasCount(2, collectionDb1s);
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection1"));
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection2"));
 
-            var myCollection = await chromaDBClient.GetCollectionAsync("collection2", "database1", "default_tenant");
+            var myCollection = await chromaDBClient.GetCollectionAsync("default_tenant", "database1", "collection2");
             Assert.IsNotNull(myCollection);
 
-            await chromaDBClient.DeleteCollectionAsync("collection2", "database1", "default_tenant");
+            await chromaDBClient.DeleteCollectionAsync("default_tenant", "database1", "collection2");
 
-            count = await chromaDBClient.CountCollectionsAsync("database1", "default_tenant");
+            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1");
             Assert.AreEqual(1, count);
 
-            collectionDb1s = await chromaDBClient.ListCollectionsAsync("database1", "default_tenant");
+            collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1");
             Assert.IsNotNull(collectionDb1s);
             Assert.HasCount(1, collectionDb1s);
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection1"));
@@ -237,8 +237,8 @@ namespace ChromaDB.Library.Tests
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
             await chromaDBClient.ResetAsync();
 
-            await chromaDBClient.CreateDatabaseAsync("database1", "default_tenant");
-            await chromaDBClient.GetOrCreateCollection("collection1", "database1", "default_tenant");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1");
+            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1");
 
             // Include all fields in the result, but you can choose to include only the fields you need.
             var include = new List<Include> { Include.Documents,
@@ -283,14 +283,14 @@ namespace ChromaDB.Library.Tests
             };
 
             // Add two documents to the collection
-            await chromaDBClient.CollectionAddAsync("collection1",
-                ids, embeddings, documents, uris, metadatas,
-                "database1", "default_tenant");
+            await chromaDBClient.CollectionAddAsync("default_tenant",
+                "database1", "collection1", ids, embeddings, documents,
+                uris, metadatas);
 
             // Retrieve the documents from the collection to verify they were added correctly
-            var result = await chromaDBClient.CollectionGetAsync("collection1",
-                null, include, null, null, 10, 0,
-                "database1", "default_tenant");
+            var result = await chromaDBClient.CollectionGetAsync("default_tenant",
+                "database1", "collection1", null, include, null, null,
+                10, 0);
 
             Assert.IsNotNull(result); 
             Assert.HasCount(2, result);
@@ -340,9 +340,9 @@ namespace ChromaDB.Library.Tests
             Assert.AreEqual("""{"page":{"$gt":10}}""", whereAsJson);
 
             // Retrieve the documents from the collection to verify they were added correctly
-            var result = await chromaDBClient.CollectionGetAsync("collection1",
-                null, include, whereFilter, null, 10, 0,
-                "database1", "default_tenant");
+            var result = await chromaDBClient.CollectionGetAsync("default_tenant",
+                "database1", "collection1", null, include, whereFilter, null,
+                10, 0);
 
             Assert.IsNotNull(result);
             Assert.HasCount(1, result);
@@ -396,9 +396,9 @@ namespace ChromaDB.Library.Tests
                 meta2
             };
 
-            await chromaDBClient.CollectionUpsertAsync("collection1",
-                ids, embeddings, documents, uris, metadatas,
-                "database1", "default_tenant");
+            await chromaDBClient.CollectionUpsertAsync("default_tenant",
+                "database1", "collection1", ids, embeddings, documents,
+                uris, metadatas);
 
 
             // Retrieve the documents from the collection to verify they were modified correctly
@@ -410,9 +410,9 @@ namespace ChromaDB.Library.Tests
                     Include.Metadatas,
                     Include.Uris };
 
-            var result = await chromaDBClient.CollectionGetAsync("collection1",
-                null, include, null, null, 10, 0,
-                "database1", "default_tenant");
+            var result = await chromaDBClient.CollectionGetAsync("default_tenant",
+                "database1", "collection1", null, include, null, null,
+                10, 0);
 
             Assert.IsNotNull(result);
             Assert.HasCount(2, result);
@@ -466,8 +466,8 @@ namespace ChromaDB.Library.Tests
                     Include.Uris };
 
             IList<IList<ChromaDbDocument>> listOfDocumentList =
-                await chromaDBClient.CollectionQueryAsync("collection1", embeddings, include, null, 2, null, null, 10, 0,
-                "database1", "default_tenant");
+                await chromaDBClient.CollectionQueryAsync("default_tenant", "database1", "collection1", embeddings, include, null, 2, null, null,
+                10, 0);
 
             foreach (var documentList in listOfDocumentList)
             {
@@ -491,8 +491,8 @@ namespace ChromaDB.Library.Tests
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
             await chromaDBClient.ResetAsync();
 
-            await chromaDBClient.CreateDatabaseAsync("database1", "default_tenant");
-            await chromaDBClient.GetOrCreateCollection("collection1", "database1", "default_tenant");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1");
+            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1");
 
             var ids = new List<string> { "id1", "id2" };
 
@@ -532,9 +532,9 @@ namespace ChromaDB.Library.Tests
             };
 
             // Add two documents to the collection
-            await chromaDBClient.CollectionAddAsync("collection1",
-                ids, embeddings, documents, uris, metadatas,
-                "database1", "default_tenant");
+            await chromaDBClient.CollectionAddAsync("default_tenant",
+                "database1", "collection1", ids, embeddings, documents,
+                uris, metadatas);
 
             // Retrieve the documents from the collection to verify they were added correctly
 
@@ -545,9 +545,9 @@ namespace ChromaDB.Library.Tests
                     Include.Metadatas,
                     Include.Uris };
 
-            var result = await chromaDBClient.CollectionGetAsync("collection1",
-                null, include, null, null, 10, 0,
-                "database1", "default_tenant");
+            var result = await chromaDBClient.CollectionGetAsync("default_tenant",
+                "database1", "collection1", null, include, null, null,
+                10, 0);
 
             Assert.IsNotNull(result);
             Assert.HasCount(2, result);
