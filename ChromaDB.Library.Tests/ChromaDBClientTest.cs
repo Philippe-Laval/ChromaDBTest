@@ -17,20 +17,23 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestServerManagementAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
-            var version = await chromaDBClient.GetVersionAsync();
+            var version = await chromaDBClient.GetVersionAsync(cancellationToken);
             Assert.IsNotNull(version);
             Console.WriteLine($"Chroma version: {version}");
 
-            var heartbeat = await chromaDBClient.GetHeartbeatAsync();
+            var heartbeat = await chromaDBClient.GetHeartbeatAsync(cancellationToken);
             Assert.IsNotNull(heartbeat);
             Console.WriteLine($"Heartbeat: {heartbeat.Nanosecond_heartbeat}");
 
-            var healthcheck = await chromaDBClient.GetHealthcheckAsync();
+            var healthcheck = await chromaDBClient.GetHealthcheckAsync(cancellationToken);
             Assert.IsNotNull(healthcheck);
             Console.WriteLine($"Healthcheck: {healthcheck ?? "Unknown"}");
-            var preFlightChecks = await chromaDBClient.GetPreFlightChecksAsync();
+            var preFlightChecks = await chromaDBClient.GetPreFlightChecksAsync(cancellationToken);
             Assert.IsNotNull(preFlightChecks);
             Console.WriteLine($"MaxBatchSize: {preFlightChecks.MaxBatchSize}");
             Console.WriteLine($"SupportsBase64Encoding: {preFlightChecks.SupportsBase64Encoding}");
@@ -40,6 +43,9 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestResetAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             /*
@@ -68,10 +74,10 @@ namespace ChromaDB.Library.Tests
                 log_tenant: "default" 
              */
 
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
             // We start with only one database, which is the default database for the default tenant.
-            var databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
+            var databases = await chromaDBClient.ListDatabasesAsync("default_tenant", cancellationToken);
             Assert.IsNotNull(databases);
             Assert.HasCount(1, databases);
             Assert.AreEqual("default_tenant", databases[0].TenantName);
@@ -81,70 +87,82 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestCreateTenantAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
-            ChromaDBTenant? chromaDBTenant= await chromaDBClient.CreateTenantAsync("tenant1");
+            ChromaDBTenant? chromaDBTenant= await chromaDBClient.CreateTenantAsync("tenant1", cancellationToken);
             Assert.IsNotNull(chromaDBTenant);
 
-            chromaDBTenant = await chromaDBClient.CreateTenantAsync("tenant1");
+            chromaDBTenant = await chromaDBClient.CreateTenantAsync("tenant1", cancellationToken);
             Assert.IsNull(chromaDBTenant);
         }
 
         [TestMethod]
         public async Task TestGetTenantAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
-            ChromaDBTenant? chromaDBTenant = await chromaDBClient.CreateTenantAsync("tenant1");
+            ChromaDBTenant? chromaDBTenant = await chromaDBClient.CreateTenantAsync("tenant1", cancellationToken);
             Assert.IsNotNull(chromaDBTenant);
 
-            chromaDBTenant = await chromaDBClient.GetTenantAsync("tenant1");
+            chromaDBTenant = await chromaDBClient.GetTenantAsync("tenant1", cancellationToken);
             Assert.IsNotNull(chromaDBTenant);
         }
 
         [TestMethod]
         public async Task TestGetOrCreateTenantAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
-            ChromaDBTenant? chromaDBTenant = await chromaDBClient.GetOrCreateTenantAsync("tenant1");
+            ChromaDBTenant? chromaDBTenant = await chromaDBClient.GetOrCreateTenantAsync("tenant1", cancellationToken);
             Assert.IsNotNull(chromaDBTenant);
 
-            chromaDBTenant = await chromaDBClient.GetOrCreateTenantAsync("tenant1");
+            chromaDBTenant = await chromaDBClient.GetOrCreateTenantAsync("tenant1", cancellationToken);
             Assert.IsNotNull(chromaDBTenant);
         }
 
         [TestMethod]
         public async Task TestCreateDatabaseAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
-            var databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
+            var databases = await chromaDBClient.ListDatabasesAsync("default_tenant", cancellationToken);
             Assert.IsNotNull(databases);
             Assert.HasCount(1, databases);
             Assert.AreEqual("default_tenant", databases[0].TenantName);
             Assert.AreEqual("default_database", databases[0].DatabaseName);
 
 
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1");
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database2");
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database3");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", cancellationToken);
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database2", cancellationToken);
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database3", cancellationToken);
 
 
             // Refresh the list of databases after creation
-            databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
+            databases = await chromaDBClient.ListDatabasesAsync("default_tenant", cancellationToken);
             Assert.HasCount(4, databases);
             Assert.IsTrue(databases.Any(db => db.DatabaseName == "database1"));
             Assert.IsTrue(databases.Any(db => db.DatabaseName == "database2"));
@@ -154,27 +172,30 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestDeleteDatabaseAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
-            var databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
+            var databases = await chromaDBClient.ListDatabasesAsync("default_tenant", cancellationToken);
             Assert.IsNotNull(databases);
             Assert.HasCount(1, databases);
             Assert.AreEqual("default_tenant", databases[0].TenantName);
             Assert.AreEqual("default_database", databases[0].DatabaseName);
             Assert.IsFalse(databases.Any(db => db.DatabaseName == "database3"));
 
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database3");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database3", cancellationToken);
 
-            databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
+            databases = await chromaDBClient.ListDatabasesAsync("default_tenant", cancellationToken);
             Assert.IsNotNull(databases);
             Assert.IsTrue(databases.Any(db => db.DatabaseName == "database3"));
 
-            await chromaDBClient.DeleteDatabaseAsync("default_tenant", "database3");
+            await chromaDBClient.DeleteDatabaseAsync("default_tenant", "database3", cancellationToken);
 
-            databases = await chromaDBClient.ListDatabasesAsync("default_tenant");
+            databases = await chromaDBClient.ListDatabasesAsync("default_tenant", cancellationToken);
             Assert.IsNotNull(databases);
             Assert.IsFalse(databases.Any(db => db.DatabaseName == "database3"));
         }
@@ -182,45 +203,48 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestManageCollectionsAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
 
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", cancellationToken);
 
             // Count collections in each database
-            int count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1");
+            int count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1", cancellationToken);
             Assert.AreEqual(0, count);
 
 
-            var collections = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1");
+            var collections = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", cancellationToken);
             Assert.IsNotNull(collections);
             Assert.IsEmpty(collections);
 
 
-            var c1 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1");
-            var c2 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection2");
+            var c1 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", cancellationToken);
+            var c2 = await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection2", cancellationToken);
 
-            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1");
+            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1", cancellationToken);
             Assert.AreEqual(2, count);
 
-            var collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1");
+            var collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", cancellationToken);
             Assert.IsNotNull(collectionDb1s);
             Assert.HasCount(2, collectionDb1s);
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection1"));
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection2"));
 
-            var myCollection = await chromaDBClient.GetCollectionAsync("default_tenant", "database1", "collection2");
+            var myCollection = await chromaDBClient.GetCollectionAsync("default_tenant", "database1", "collection2", cancellationToken);
             Assert.IsNotNull(myCollection);
 
-            await chromaDBClient.DeleteCollectionAsync("default_tenant", "database1", "collection2");
+            await chromaDBClient.DeleteCollectionAsync("default_tenant", "database1", "collection2", cancellationToken);
 
-            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1");
+            count = await chromaDBClient.CountCollectionsAsync("default_tenant", "database1", cancellationToken);
             Assert.AreEqual(1, count);
 
-            collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1");
+            collectionDb1s = await chromaDBClient.ListCollectionsAsync("default_tenant", "database1", cancellationToken);
             Assert.IsNotNull(collectionDb1s);
             Assert.HasCount(1, collectionDb1s);
             Assert.IsTrue(collectionDb1s.Any(c => c.CollectionName == "collection1"));
@@ -230,15 +254,18 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestCollectionAddAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             var ids = new List<string> { "id1", "id2" };
 
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1");
-            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", cancellationToken);
+            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", cancellationToken);
 
             // Include all fields in the result, but you can choose to include only the fields you need.
             var include = new List<Include> { Include.Documents,
@@ -285,12 +312,12 @@ namespace ChromaDB.Library.Tests
             // Add two documents to the collection
             await chromaDBClient.CollectionAddAsync("default_tenant",
                 "database1", "collection1", ids, embeddings, documents,
-                uris, metadatas);
+                uris, metadatas, cancellationToken);
 
             // Retrieve the documents from the collection to verify they were added correctly
             var result = await chromaDBClient.CollectionGetAsync("default_tenant",
                 "database1", "collection1", null, include, null, null,
-                10, 0);
+                10, 0, cancellationToken);
 
             Assert.IsNotNull(result); 
             Assert.HasCount(2, result);
@@ -321,6 +348,9 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestCollectionGetAsync_WithFilter()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             await SetupCollection();
@@ -342,7 +372,7 @@ namespace ChromaDB.Library.Tests
             // Retrieve the documents from the collection to verify they were added correctly
             var result = await chromaDBClient.CollectionGetAsync("default_tenant",
                 "database1", "collection1", null, include, whereFilter, null,
-                10, 0);
+                10, 0, cancellationToken);
 
             Assert.IsNotNull(result);
             Assert.HasCount(1, result);
@@ -351,6 +381,9 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestCollectionUpsertAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             await SetupCollection();
@@ -412,7 +445,7 @@ namespace ChromaDB.Library.Tests
 
             var result = await chromaDBClient.CollectionGetAsync("default_tenant",
                 "database1", "collection1", null, include, null, null,
-                10, 0);
+                10, 0, cancellationToken);
 
             Assert.IsNotNull(result);
             Assert.HasCount(2, result);
@@ -438,6 +471,9 @@ namespace ChromaDB.Library.Tests
         [TestMethod]
         public async Task TestCollectionQueryAsync()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             await SetupCollection();
@@ -467,7 +503,7 @@ namespace ChromaDB.Library.Tests
 
             IList<IList<ChromaDbDocument>> listOfDocumentList =
                 await chromaDBClient.CollectionQueryAsync("default_tenant", "database1", "collection1", embeddings, include, null, 2, null, null,
-                10, 0);
+                10, 0, cancellationToken);
 
             foreach (var documentList in listOfDocumentList)
             {
@@ -486,13 +522,16 @@ namespace ChromaDB.Library.Tests
 
         private async Task SetupCollection()
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken cancellationToken = tokenSource.Token;
+
             ChromaDBClient chromaDBClient = new ChromaDBClient(host: "localhost", port: 8000);
 
             // Reset the ChromaDB server to its initial state. This will delete all databases and collections.
-            await chromaDBClient.ResetAsync();
+            await chromaDBClient.ResetAsync(cancellationToken);
 
-            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1");
-            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1");
+            await chromaDBClient.CreateDatabaseAsync("default_tenant", "database1", cancellationToken);
+            await chromaDBClient.GetOrCreateCollection("default_tenant", "database1", "collection1", cancellationToken);
 
             var ids = new List<string> { "id1", "id2" };
 
@@ -534,7 +573,7 @@ namespace ChromaDB.Library.Tests
             // Add two documents to the collection
             await chromaDBClient.CollectionAddAsync("default_tenant",
                 "database1", "collection1", ids, embeddings, documents,
-                uris, metadatas);
+                uris, metadatas, cancellationToken);
 
             // Retrieve the documents from the collection to verify they were added correctly
 
@@ -547,7 +586,7 @@ namespace ChromaDB.Library.Tests
 
             var result = await chromaDBClient.CollectionGetAsync("default_tenant",
                 "database1", "collection1", null, include, null, null,
-                10, 0);
+                10, 0, cancellationToken);
 
             Assert.IsNotNull(result);
             Assert.HasCount(2, result);
